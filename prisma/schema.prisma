@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Offer {
+  id              String      @id @default(cuid())
+  title           String
+  description     String?
+  imageUrl        String
+  originalPrice   Float
+  currentPrice    Float
+  discountPercent Float
+  affiliateUrl    String
+  marketplace     Marketplace
+  category        Category
+  status          OfferStatus @default(ACTIVE)
+  featured        Boolean     @default(false)
+  score           Float       @default(0) // relevância calculada no sync
+  expiresAt       DateTime?
+  stockStatus     StockStatus @default(IN_STOCK)
+  rating          Float?
+  reviewCount     Int?
+  externalId      String? // ID do produto no marketplace
+  externalSku     String?
+  notFoundCount   Int         @default(0) // verificações consecutivas sem encontrar
+  clicks          Int         @default(0)
+  shares          Int         @default(0)
+  publishedAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  socialPosts SocialPost[]
+  tags        Tag[]
+  events      ClickEvent[]
+
+  @@unique([marketplace, externalId])
+  @@index([status, category])
+  @@index([discountPercent])
+  @@index([createdAt])
+}
+
+// Evento datado de clique/compartilhamento — base do analytics por janela de tempo.
+model ClickEvent {
+  id        String    @id @default(cuid())
+  offerId   String
+  offer     Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  type      EventType @default(CLICK)
+  referer   String?
+  createdAt DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([offerId, type])
+}
+
+enum EventType {
+  CLICK
+  SHARE
+}
+
+enum Marketplace {
+  MERCADO_LIVRE
+  AMAZON
+  MAGAZINE_LUIZA
+  SHOPEE
+  AMERICANAS
+  KABUM
+  CASAS_BAHIA
+  PONTO
+  MANUAL
+}
+
+enum Category {
+  ELETRONICOS
+  GAMES
+  VESTUARIO
+  CALCADOS
+  PERFUMES_COSMETICOS
+  ELETRODOMESTICOS
+  CASA_DECORACAO
+  LIVROS
+  ESPORTES
+  INFANTIL
+  ALIMENTOS
+  OUTROS
+}
+
+enum OfferStatus {
+  ACTIVE
+  EXPIRED
+  OUT_OF_STOCK
+  ARCHIVED
+  DRAFT
+}
+
+enum StockStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+model SocialPost {
+  id          String         @id @default(cuid())
+  offerId     String
+  offer       Offer          @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  platform    SocialPlatform
+  status      PostStatus     @default(PENDING)
+  imageUrl    String?
+  caption     String?
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  externalId  String?
+  error       String?
+  createdAt   DateTime       @default(now())
+
+  @@index([status, platform])
+}
+
+enum SocialPlatform {
+  WHATSAPP
+  INSTAGRAM
+  TIKTOK
+  TELEGRAM
+}
+
+enum PostStatus {
+  PENDING
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+model Tag {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  offers Offer[]
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  role      Role     @default(EDITOR)
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+}
+
+model AlertSubscription {
+  id         String     @id @default(cuid())
+  email      String
+  categories Category[]
+  active     Boolean    @default(true)
+  lastSentAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@unique([email])
+}
+
+model Settings {
+  key   String @id
+  value String
+}
