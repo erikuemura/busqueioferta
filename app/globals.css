@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0b0d12;
-  --card: #151922;
-  --border: #232a36;
+  --bg: #0a0c10;
+  --bg-soft: #0e1117;
+  --card: #14181f;
+  --card-hover: #1a1f29;
+  --border: #232936;
+  --text: #e9edf3;
+  --muted: #9aa6b8;
 }
 
 html {
@@ -13,32 +17,69 @@ html {
 }
 
 body {
-  background: var(--bg);
-  color: #e8eaed;
+  background:
+    radial-gradient(1200px 600px at 50% -200px, rgba(255, 90, 31, 0.10), transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 @layer components {
   .container-page {
     @apply mx-auto w-full max-w-6xl px-4;
   }
+
   .card {
     background: var(--card);
     border: 1px solid var(--border);
     @apply rounded-2xl;
   }
+
   .btn-brand {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 font-semibold text-white transition hover:bg-brand-600 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-semibold text-white shadow-sm transition active:scale-[0.98];
+    background: linear-gradient(180deg, #ff6a33, #ed430a);
+    box-shadow: 0 6px 18px -6px rgba(237, 67, 10, 0.5);
   }
+  .btn-brand:hover {
+    filter: brightness(1.06);
+  }
+
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 font-medium text-gray-200 transition hover:bg-white/5;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-white/[0.02] px-4 py-2.5 font-medium text-gray-200 transition hover:bg-white/[0.06];
+  }
+
+  /* Cabeçalho de seção com barra de destaque */
+  .section-title {
+    @apply flex items-center gap-2.5 text-lg font-bold tracking-tight sm:text-xl;
+  }
+  .section-title::before {
+    content: "";
+    @apply h-5 w-1.5 rounded-full;
+    background: linear-gradient(180deg, #ff6a33, #ed430a);
+  }
+
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[var(--border)] bg-white/[0.02] px-3 py-2 text-sm font-medium text-gray-300 transition hover:border-brand/50 hover:bg-white/[0.06] hover:text-white;
+  }
+  .chip-active {
+    @apply border-brand bg-brand/10 text-brand;
   }
 }
 
-/* line-clamp utilitário (caso plugin não esteja presente) */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }

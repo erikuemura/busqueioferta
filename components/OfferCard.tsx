@@ -84,7 +84,10 @@ export function OfferCard({ offer }: { offer: Offer }) {
         )}
 
         {offer.clicks > 0 && (
-          <p className="text-[11px] text-gray-500">🔥 {offer.clicks} pessoas já foram à oferta</p>
+          <p className="text-[11px] text-gray-500">
+            🔥 {offer.clicks}{" "}
+            {offer.clicks === 1 ? "pessoa já foi" : "pessoas já foram"} à oferta
+          </p>
         )}
 
         <a

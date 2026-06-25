@@ -8,6 +8,7 @@ import { CategoryNav } from "@/components/CategoryNav";
 import { OfferGrid } from "@/components/OfferGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { CouponCard } from "@/components/CouponCard";
+import { Hero } from "@/components/Hero";
 import { formatPrice } from "@/lib/utils";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -76,8 +77,11 @@ export default async function HomePage({
     <>
       <Header />
       <main className="container-page py-6">
+        {!q && <Hero offerCount={total} couponCount={coupons.length} />}
+
         {!q && featured.length > 0 && (
-          <section className="mb-8">
+          <section className="mb-10">
+            <h2 className="section-title mb-4">Ofertas do dia</h2>
             <div className="grid gap-3 md:grid-cols-2">
               <FeaturedHero offer={featured[0]} />
               <div className="grid grid-cols-2 gap-3">
@@ -94,8 +98,8 @@ export default async function HomePage({
         </div>
 
         <div className="mb-4 flex items-end justify-between">
-          <h1 className="text-xl font-bold">
-            {q ? `Resultados para “${q}”` : "🔥 Ofertas em destaque"}
+          <h1 className="section-title">
+            {q ? `Resultados para “${q}”` : "Ofertas em destaque"}
           </h1>
           <span className="text-sm text-gray-500">{total} ofertas</span>
         </div>
@@ -116,8 +120,8 @@ export default async function HomePage({
         {!q && mostClicked.length > 0 && (
           <section className="mt-12">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">📈 Mais acessadas</h2>
-              <span className="text-sm text-gray-500">As ofertas que mais geraram cliques</span>
+              <h2 className="section-title">Mais acessadas</h2>
+              <span className="hidden text-sm text-gray-500 sm:block">As ofertas que mais geraram cliques</span>
             </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {mostClicked.map((o) => (
@@ -130,9 +134,9 @@ export default async function HomePage({
         {!q && coupons.length > 0 && (
           <section className="mt-12">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold">🎟️ Cupons populares</h2>
-              <Link href="/cupons" className="text-sm text-brand hover:underline">
-                Ver todos os cupons →
+              <h2 className="section-title">Cupons populares</h2>
+              <Link href="/cupons" className="text-sm font-medium text-brand hover:underline">
+                Ver todos →
               </Link>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
