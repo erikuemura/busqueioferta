@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SearchAutocomplete } from "./SearchAutocomplete";
+import { AccountLink } from "./AccountLink";
 import { LogoMark } from "./Logo";
 
 export function Header() {
@@ -19,10 +20,7 @@ export function Header() {
           <Link href="/cupons" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-gray-300 transition hover:bg-white/5 hover:text-white md:block">
             🎟️ Cupons
           </Link>
-          <Link href="/alertas" className="btn-ghost px-3 py-2 text-sm">
-            <span className="hidden sm:inline">🔔 Alertas</span>
-            <span className="sm:hidden">🔔</span>
-          </Link>
+          <AccountLink />
         </nav>
       </div>
     </header>

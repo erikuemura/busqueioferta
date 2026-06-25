@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 
-/** Garante sessão válida em páginas/admin. Redireciona para login se ausente. */
+export function isStaff(role?: string): boolean {
+  return role === "ADMIN" || role === "EDITOR";
+}
+
+/** Garante sessão de equipe (ADMIN/EDITOR). Clientes (CUSTOMER) são barrados. */
 export async function requireSession() {
   const session = await auth();
-  if (!session?.user) redirect("/admin/login");
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  if (!session?.user || !isStaff(role)) redirect("/admin/login");
   return session;
 }

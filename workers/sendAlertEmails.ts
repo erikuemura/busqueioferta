@@ -57,6 +57,29 @@ export function createAlertWorker(connection: ConnectionOptions) {
         await prisma.alertSubscription.update({ where: { id: sub.id }, data: { lastSentAt: new Date() } });
         sent++;
       }
+
+      // Clientes cadastrados (área logada) que optaram por e-mail
+      const customers = await prisma.user.findMany({
+        where: { role: "CUSTOMER", wantsEmail: true, interests: { isEmpty: false } },
+      });
+      for (const c of customers) {
+        const offers = await prisma.offer.findMany({
+          where: { status: "ACTIVE", category: { in: c.interests }, createdAt: { gte: since } },
+          orderBy: { score: "desc" },
+          take: 10,
+        });
+        if (offers.length === 0) continue;
+        const html = `
+          <h2>🔥 Olá ${c.name ?? ""}, novas ofertas pra você</h2>
+          <ul>${offers
+            .map((o) => `<li><a href="${base}/oferta/${o.id}">${o.title}</a> — <b>${formatPrice(o.currentPrice)}</b> (-${Math.round(o.discountPercent)}%)</li>`)
+            .join("")}</ul>
+          <p>busqueioferta</p>`;
+        await sendEmail(c.email, `${offers.length} novas ofertas das suas categorias`, html);
+        await prisma.user.update({ where: { id: c.id }, data: { lastDigestAt: new Date() } });
+        sent++;
+      }
+
       console.log(`[alert] digests enviados: ${sent}`);
       return { sent };
     },

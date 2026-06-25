@@ -80,6 +80,27 @@ export default async function SettingsPage() {
           </label>
         </section>
 
+        <section className="card space-y-4 p-5">
+          <h2 className="font-semibold">💬 Grupos de WhatsApp & canais</h2>
+          <p className="text-xs text-gray-500">
+            Cole os links de convite. Os clientes veem os grupos do nicho que escolheram na área “Minha conta”.
+          </p>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-400">Grupo geral (chat.whatsapp.com/...)</span>
+            <input name="whatsappGroupDefault" defaultValue={s.whatsappGroupDefault} className="input" placeholder="https://chat.whatsapp.com/..." />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-400">
+              Grupos por categoria (JSON) — ex: {`{"ELETRONICOS":"https://chat.whatsapp.com/abc","GAMES":"https://chat.whatsapp.com/xyz"}`}
+            </span>
+            <textarea name="whatsappGroups" defaultValue={s.whatsappGroups} rows={5} className="input font-mono text-xs" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-gray-400">Canal do Telegram (t.me/...)</span>
+            <input name="telegramChannel" defaultValue={s.telegramChannel} className="input" placeholder="https://t.me/..." />
+          </label>
+        </section>
+
         <button className="btn-brand">Salvar configurações</button>
       </form>
 

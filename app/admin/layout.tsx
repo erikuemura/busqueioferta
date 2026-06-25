@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth } from "@/lib/auth";
+import { isStaff } from "./guard";
 import { LogoutButton } from "./LogoutButton";
 
 const NAV = [
@@ -11,9 +12,10 @@ const NAV = [
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
+  const role = (session?.user as { role?: string } | undefined)?.role;
 
-  // Sem sessão: rende apenas o conteúdo (página de login) sem o shell.
-  if (!session?.user) {
+  // Sem sessão de equipe: rende apenas o conteúdo (página de login) sem o shell.
+  if (!session?.user || !isStaff(role)) {
     return <div className="min-h-screen">{children}</div>;
   }
 

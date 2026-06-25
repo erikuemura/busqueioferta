@@ -188,12 +188,19 @@ model User {
   name      String?
   password  String
   role      Role     @default(EDITOR)
+  // Perfil do cliente (role CUSTOMER)
+  phone        String?
+  interests    Category[]
+  wantsWhatsapp Boolean   @default(true)
+  wantsEmail    Boolean   @default(true)
+  lastDigestAt  DateTime?
   createdAt DateTime @default(now())
 }
 
 enum Role {
   ADMIN
   EDITOR
+  CUSTOMER
 }
 
 model AlertSubscription {

@@ -28,6 +28,12 @@ export const DEFAULT_SETTINGS = {
     "📲 Siga {perfil} para mais ofertas!",
   ].join("\n"),
   instagramTemplate: "{titulo} por apenas {preco} ({desconto}% OFF) na {marketplace}! Link na bio. {perfil}",
+  // Grupo geral de ofertas no WhatsApp (link de convite chat.whatsapp.com/...)
+  whatsappGroupDefault: "",
+  // Grupos por categoria: JSON { "ELETRONICOS": "https://chat.whatsapp.com/...", ... }
+  whatsappGroups: "{}",
+  // Canal do Telegram (link público t.me/...)
+  telegramChannel: "",
 } as const;
 
 export type SettingKey = keyof typeof DEFAULT_SETTINGS;
