@@ -1,14 +1,19 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Offer, Prisma } from "@prisma/client";
+import type { Coupon, Offer, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CategoryNav } from "@/components/CategoryNav";
 import { OfferGrid } from "@/components/OfferGrid";
+import { OfferCard } from "@/components/OfferCard";
+import { CouponCard } from "@/components/CouponCard";
 import { formatPrice } from "@/lib/utils";
+import { absoluteUrl } from "@/lib/seo";
 
 export const revalidate = 900; // ISR 15min
+
+export const metadata = { alternates: { canonical: absoluteUrl("/") } };
 
 const PAGE_SIZE = 16;
 
@@ -32,8 +37,10 @@ export default async function HomePage({
   let featured: Offer[] = [];
   let offers: Offer[] = [];
   let total = 0;
+  let mostClicked: Offer[] = [];
+  let coupons: Coupon[] = [];
   try {
-    [featured, offers, total] = await Promise.all([
+    [featured, offers, total, mostClicked, coupons] = await Promise.all([
       q
         ? Promise.resolve<Offer[]>([])
         : prisma.offer.findMany({
@@ -48,6 +55,16 @@ export default async function HomePage({
         skip: (page - 1) * PAGE_SIZE,
       }),
       prisma.offer.count({ where }),
+      q
+        ? Promise.resolve<Offer[]>([])
+        : prisma.offer.findMany({ where: { status: "ACTIVE", clicks: { gt: 0 } }, orderBy: { clicks: "desc" }, take: 8 }),
+      q
+        ? Promise.resolve<Coupon[]>([])
+        : prisma.coupon.findMany({
+            where: { OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }] },
+            orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+            take: 6,
+          }),
     ]);
   } catch (err) {
     console.error("[home] falha ao carregar ofertas:", (err as Error).message);
@@ -94,6 +111,36 @@ export default async function HomePage({
               Carregar mais ofertas
             </Link>
           </div>
+        )}
+
+        {!q && mostClicked.length > 0 && (
+          <section className="mt-12">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold">📈 Mais acessadas</h2>
+              <span className="text-sm text-gray-500">As ofertas que mais geraram cliques</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {mostClicked.map((o) => (
+                <OfferCard key={o.id} offer={o} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {!q && coupons.length > 0 && (
+          <section className="mt-12">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold">🎟️ Cupons populares</h2>
+              <Link href="/cupons" className="text-sm text-brand hover:underline">
+                Ver todos os cupons →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {coupons.map((c) => (
+                <CouponCard key={c.id} coupon={c} />
+              ))}
+            </div>
+          </section>
         )}
       </main>
       <Footer />

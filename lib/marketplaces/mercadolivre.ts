@@ -93,6 +93,38 @@ export const mercadoLivreAdapter: MarketplaceAdapter = {
       .filter((o): o is NormalizedOffer => o !== null);
   },
 
+  generateAffiliateLink(rawUrl: string) {
+    return buildAffiliateUrl("MERCADO_LIVRE", rawUrl);
+  },
+
+  async getProduct(externalId: string): Promise<NormalizedOffer | null> {
+    const res = await fetch(`${API}/items/${externalId}`, { headers: await authHeaders(), cache: "no-store" });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`ML item ${externalId}: ${res.status}`);
+    const item = (await res.json()) as {
+      id: string;
+      title: string;
+      price: number;
+      original_price: number | null;
+      permalink: string;
+      thumbnail: string;
+      available_quantity: number;
+      category_id?: string;
+    };
+    const original = item.original_price ?? item.price;
+    return {
+      externalId: item.id,
+      title: item.title,
+      imageUrl: item.thumbnail?.replace("http://", "https://").replace("-I.", "-O.") ?? "",
+      originalPrice: original,
+      currentPrice: item.price,
+      affiliateUrl: buildAffiliateUrl("MERCADO_LIVRE", item.permalink),
+      marketplace: "MERCADO_LIVRE",
+      category: mapCategory(item.category_id, item.title),
+      stockQuantity: item.available_quantity,
+    };
+  },
+
   async checkAvailability(externalId: string) {
     const res = await fetch(`${API}/items/${externalId}`, {
       headers: await authHeaders(),

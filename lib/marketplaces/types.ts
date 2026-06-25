@@ -26,12 +26,38 @@ export interface FetchOffersOptions {
   limit?: number;
 }
 
-export interface MarketplaceAdapter {
+/** Cupom normalizado por marketplace. */
+export interface NormalizedCoupon {
+  code: string;
+  title: string;
+  description?: string;
+  discountText?: string;
+  affiliateUrl: string;
+  marketplace: Marketplace;
+  expiresAt?: Date;
+}
+
+/**
+ * Contrato único que todo provider de marketplace implementa.
+ * Métodos opcionais permitem implementação incremental por provider.
+ */
+export interface MarketplaceProvider {
   marketplace: Marketplace;
   /** Se as credenciais necessárias estão presentes no ambiente. */
   isConfigured(): boolean;
-  /** Busca ofertas e devolve no formato normalizado. */
+  /** Busca ofertas/produtos e devolve no formato normalizado. */
   fetchOffers(opts: FetchOffersOptions): Promise<NormalizedOffer[]>;
+  /** Alias semântico de fetchOffers para buscas por termo. */
+  searchProducts?(opts: FetchOffersOptions): Promise<NormalizedOffer[]>;
+  /** Detalhe de um produto específico. */
+  getProduct?(externalId: string): Promise<NormalizedOffer | null>;
+  /** Cupons ativos do marketplace. */
+  getCoupons?(): Promise<NormalizedCoupon[]>;
   /** Verifica se um item segue disponível (usado pelo check-offer-status). */
   checkAvailability?(externalId: string): Promise<{ available: boolean; currentPrice?: number }>;
+  /** Garante a tag de afiliado na URL de saída. */
+  generateAffiliateLink?(rawUrl: string): string;
 }
+
+/** @deprecated use MarketplaceProvider — mantido por compatibilidade. */
+export type MarketplaceAdapter = MarketplaceProvider;

@@ -5,6 +5,8 @@ import { offerToVars, renderTemplate } from "./social/whatsapp";
 import { isInstagramConfigured } from "./social/instagram";
 import { isTikTokConfigured } from "./social/tiktok";
 import { isTelegramConfigured } from "./social/telegram";
+import { isFacebookConfigured } from "./social/facebook";
+import { isPinterestConfigured } from "./social/pinterest";
 import { enqueueGenerateSocialImage } from "./queue";
 
 function startOfToday(): Date {
@@ -26,6 +28,8 @@ export function enabledAutoPlatforms(): SocialPlatform[] {
   if (isInstagramConfigured()) out.push("INSTAGRAM");
   if (isTikTokConfigured()) out.push("TIKTOK");
   if (isTelegramConfigured()) out.push("TELEGRAM");
+  if (isFacebookConfigured()) out.push("FACEBOOK");
+  if (isPinterestConfigured()) out.push("PINTEREST");
   if (process.env.WHATSAPP_API_URL) out.push("WHATSAPP");
   return out;
 }

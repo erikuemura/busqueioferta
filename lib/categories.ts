@@ -37,23 +37,32 @@ export function getCategoryMeta(value: Category): CategoryMeta {
 export interface MarketplaceMeta {
   value: Marketplace;
   label: string;
+  slug: string;
   color: string;
 }
 
 export const MARKETPLACES: MarketplaceMeta[] = [
-  { value: "MERCADO_LIVRE", label: "Mercado Livre", color: "#FFE600" },
-  { value: "AMAZON", label: "Amazon", color: "#FF9900" },
-  { value: "MAGAZINE_LUIZA", label: "Magazine Luiza", color: "#0086FF" },
-  { value: "SHOPEE", label: "Shopee", color: "#EE4D2D" },
-  { value: "AMERICANAS", label: "Americanas", color: "#E60014" },
-  { value: "KABUM", label: "Kabum", color: "#FF6500" },
-  { value: "CASAS_BAHIA", label: "Casas Bahia", color: "#003DA5" },
-  { value: "PONTO", label: "Ponto", color: "#E4002B" },
-  { value: "MANUAL", label: "Manual", color: "#64748B" },
+  { value: "MERCADO_LIVRE", label: "Mercado Livre", slug: "mercado-livre", color: "#FFE600" },
+  { value: "AMAZON", label: "Amazon", slug: "amazon", color: "#FF9900" },
+  { value: "MAGAZINE_LUIZA", label: "Magazine Luiza", slug: "magazine-luiza", color: "#0086FF" },
+  { value: "SHOPEE", label: "Shopee", slug: "shopee", color: "#EE4D2D" },
+  { value: "AMERICANAS", label: "Americanas", slug: "americanas", color: "#E60014" },
+  { value: "KABUM", label: "Kabum", slug: "kabum", color: "#FF6500" },
+  { value: "CASAS_BAHIA", label: "Casas Bahia", slug: "casas-bahia", color: "#003DA5" },
+  { value: "PONTO", label: "Ponto", slug: "ponto", color: "#E4002B" },
+  { value: "MANUAL", label: "Manual", slug: "manual", color: "#64748B" },
 ];
 
 const marketplaceByValue = new Map(MARKETPLACES.map((m) => [m.value, m]));
+const marketplaceBySlug = new Map(MARKETPLACES.map((m) => [m.slug, m]));
 
 export function getMarketplaceMeta(value: Marketplace): MarketplaceMeta {
   return marketplaceByValue.get(value) ?? MARKETPLACES[MARKETPLACES.length - 1];
 }
+
+export function getMarketplaceBySlug(slug: string): MarketplaceMeta | undefined {
+  return marketplaceBySlug.get(slug);
+}
+
+/** Marketplaces que aparecem publicamente (exclui MANUAL). */
+export const PUBLIC_MARKETPLACES = MARKETPLACES.filter((m) => m.value !== "MANUAL");

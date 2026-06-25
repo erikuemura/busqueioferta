@@ -4,6 +4,8 @@ import type { Metadata } from "next";
 import type { Offer, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCategoryBySlug } from "@/lib/categories";
+import { buildMetadata, breadcrumbLd, itemListLd } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CategoryNav } from "@/components/CategoryNav";
@@ -23,7 +25,11 @@ const SORTS: Record<string, { label: string; orderBy: Prisma.OfferOrderByWithRel
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const cat = getCategoryBySlug(params.slug);
   if (!cat) return {};
-  return { title: `Ofertas de ${cat.label}`, description: `As melhores ofertas de ${cat.label} dos principais marketplaces.` };
+  return buildMetadata({
+    title: `Ofertas de ${cat.label} com desconto`,
+    description: `As melhores ofertas e promoções de ${cat.label} dos principais marketplaces do Brasil. Compare preços e economize com link verificado.`,
+    path: `/categoria/${cat.slug}`,
+  });
 }
 
 export default async function CategoryPage({
@@ -96,6 +102,16 @@ export default async function CategoryPage({
         )}
       </main>
       <Footer />
+
+      <JsonLd
+        data={[
+          breadcrumbLd([
+            { name: "Início", path: "/" },
+            { name: cat.label, path: `/categoria/${cat.slug}` },
+          ]),
+          itemListLd(offers.map((o) => ({ name: o.title, path: `/oferta/${o.id}` }))),
+        ]}
+      />
     </>
   );
 }

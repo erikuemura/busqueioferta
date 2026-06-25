@@ -8,9 +8,13 @@ import { CountdownTimer } from "./CountdownTimer";
 export function OfferCard({ offer }: { offer: Offer }) {
   const market = getMarketplaceMeta(offer.marketplace);
   const lowStock = offer.stockStatus === "LOW_STOCK";
+  const discount = Math.round(offer.discountPercent);
+  const economia = offer.originalPrice - offer.currentPrice;
+  const hot = discount >= 40;
+  const bestPrice = discount >= 50 || offer.featured;
 
   return (
-    <div className="card group flex flex-col overflow-hidden transition hover:border-brand/60">
+    <article className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-lg hover:shadow-black/30">
       <Link href={`/oferta/${offer.id}`} className="relative block aspect-square overflow-hidden bg-white">
         <Image
           src={offer.imageUrl}
@@ -20,22 +24,39 @@ export function OfferCard({ offer }: { offer: Offer }) {
           className="object-contain transition duration-300 group-hover:scale-105"
         />
         <span className="absolute left-2 top-2 rounded-lg bg-accent px-2 py-1 text-sm font-extrabold text-white shadow">
-          -{Math.round(offer.discountPercent)}%
+          -{discount}%
         </span>
-        {lowStock && (
-          <span className="absolute right-2 top-2 rounded-lg bg-amber-500 px-2 py-0.5 text-[11px] font-bold text-black">
-            Últimas unidades
-          </span>
-        )}
+        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+          {hot && (
+            <span className="rounded-md bg-orange-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+              🔥 OFERTA QUENTE
+            </span>
+          )}
+          {bestPrice && (
+            <span className="rounded-md bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
+              🏆 MELHOR PREÇO
+            </span>
+          )}
+          {lowStock && (
+            <span className="rounded-md bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold text-black shadow">
+              ⚡ ÚLTIMAS
+            </span>
+          )}
+        </div>
       </Link>
 
       <div className="flex flex-1 flex-col gap-2 p-3">
-        <span
-          className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black"
-          style={{ backgroundColor: market.color }}
-        >
-          {market.label}
-        </span>
+        <div className="flex items-center justify-between">
+          <span
+            className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black"
+            style={{ backgroundColor: market.color }}
+          >
+            {market.label}
+          </span>
+          {offer.rating ? (
+            <span className="text-[11px] font-semibold text-amber-400">★ {offer.rating.toFixed(1)}</span>
+          ) : null}
+        </div>
 
         <Link
           href={`/oferta/${offer.id}`}
@@ -45,7 +66,14 @@ export function OfferCard({ offer }: { offer: Offer }) {
         </Link>
 
         <div className="mt-auto">
-          <p className="text-xs text-gray-500 line-through">{formatPrice(offer.originalPrice)}</p>
+          <div className="flex items-baseline gap-2">
+            <p className="text-xs text-gray-500 line-through">{formatPrice(offer.originalPrice)}</p>
+            {economia > 0 && (
+              <span className="rounded bg-emerald-500/15 px-1 text-[10px] font-bold text-emerald-400">
+                -{formatPrice(economia)}
+              </span>
+            )}
+          </div>
           <p className="text-xl font-extrabold text-brand">{formatPrice(offer.currentPrice)}</p>
         </div>
 
@@ -55,15 +83,19 @@ export function OfferCard({ offer }: { offer: Offer }) {
           </div>
         )}
 
+        {offer.clicks > 0 && (
+          <p className="text-[11px] text-gray-500">🔥 {offer.clicks} pessoas já foram à oferta</p>
+        )}
+
         <a
           href={`/api/track/click?offerId=${offer.id}`}
           target="_blank"
           rel="nofollow sponsored noopener"
           className="btn-brand mt-1 w-full text-sm"
         >
-          Ver Oferta
+          Pegar oferta
         </a>
       </div>
-    </div>
+    </article>
   );
 }

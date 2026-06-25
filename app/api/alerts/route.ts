@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { Category } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CATEGORIES } from "@/lib/categories";
+import { rateLimit, clientKey } from "@/lib/rateLimit";
 
 const validCategories = CATEGORIES.map((c) => c.value) as [Category, ...Category[]];
 
@@ -12,6 +13,9 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(clientKey(req, "alerts"), 5, 60_000);
+  if (!rl.ok) return NextResponse.json({ error: "Muitas tentativas. Tente em instantes." }, { status: 429 });
+
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {

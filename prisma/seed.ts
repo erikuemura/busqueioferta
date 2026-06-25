@@ -103,6 +103,25 @@ async function main() {
     count++;
   }
   console.log(`✓ ${count} ofertas inseridas`);
+
+  // --- Cupons (idempotente: só cria se ainda não houver) ---
+  const couponCount = await prisma.coupon.count();
+  if (couponCount === 0) {
+    await prisma.coupon.createMany({
+      data: [
+        { code: "PRIMEIRA10", title: "10% OFF na primeira compra", description: "Para novos clientes", marketplace: "AMAZON", discountText: "10% OFF", affiliateUrl: "https://amazon.com.br?tag=busqueioferta", verified: true, featured: true },
+        { code: "FRETEGRATIS", title: "Frete grátis acima de R$79", marketplace: "MERCADO_LIVRE", discountText: "Frete grátis", affiliateUrl: "https://mercadolivre.com.br", verified: true, featured: true },
+        { code: "MAGALU15", title: "15% OFF em eletrônicos selecionados", marketplace: "MAGAZINE_LUIZA", category: "ELETRONICOS", discountText: "15% OFF", affiliateUrl: "https://magazinevoce.com.br", verified: true },
+        { code: "KABUM50", title: "R$50 OFF em compras acima de R$500", marketplace: "KABUM", category: "GAMES", discountText: "R$ 50 OFF", affiliateUrl: "https://kabum.com.br", verified: true, featured: true },
+        { code: "CASA20", title: "20% OFF em casa e decoração", marketplace: "CASAS_BAHIA", category: "CASA_DECORACAO", discountText: "20% OFF", affiliateUrl: "https://casasbahia.com.br" },
+        { code: "SHOPEE12", title: "Cupom R$12 OFF sem mínimo", marketplace: "SHOPEE", discountText: "R$ 12 OFF", affiliateUrl: "https://shopee.com.br", verified: true },
+        { code: "AMERICANAS10", title: "10% OFF moda e calçados", marketplace: "AMERICANAS", category: "VESTUARIO", discountText: "10% OFF", affiliateUrl: "https://americanas.com.br" },
+      ],
+    });
+    console.log("✓ 7 cupons inseridos");
+  } else {
+    console.log(`• ${couponCount} cupons já existem (pulado)`);
+  }
 }
 
 main()

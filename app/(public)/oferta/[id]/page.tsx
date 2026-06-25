@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/utils";
 import { getCategoryMeta, getMarketplaceMeta } from "@/lib/categories";
 import { offerToVars, renderTemplate, whatsappShareUrl } from "@/lib/social/whatsapp";
+import { absoluteUrl, breadcrumbLd } from "@/lib/seo";
+import { JsonLd } from "@/components/JsonLd";
 import { getSetting } from "@/lib/settings";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -31,8 +33,10 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   return {
     title,
     description: `${Math.round(offer.discountPercent)}% OFF na ${getMarketplaceMeta(offer.marketplace).label}. De ${formatPrice(offer.originalPrice)} por ${formatPrice(offer.currentPrice)}.`,
+    alternates: { canonical: absoluteUrl(`/oferta/${offer.id}`) },
     openGraph: {
       title,
+      url: absoluteUrl(`/oferta/${offer.id}`),
       images: [{ url: offer.imageUrl, width: 800, height: 800, alt: offer.title }],
       type: "website",
     },
@@ -161,7 +165,16 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
       </main>
       <Footer />
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productLd) }} />
+      <JsonLd
+        data={[
+          productLd,
+          breadcrumbLd([
+            { name: "Início", path: "/" },
+            { name: cat.label, path: `/categoria/${cat.slug}` },
+            { name: offer.title, path: `/oferta/${offer.id}` },
+          ]),
+        ]}
+      />
     </>
   );
 }

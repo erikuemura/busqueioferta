@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, PUBLIC_MARKETPLACES } from "@/lib/categories";
+import { SEO_TERMS } from "@/lib/terms";
 
 export const revalidate = 3600;
 
@@ -21,19 +22,36 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     offers = [];
   }
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: "hourly", priority: 1 },
-    { url: `${base}/alertas`, changeFrequency: "monthly", priority: 0.5 },
-    ...CATEGORIES.map((c) => ({
-      url: `${base}/categoria/${c.slug}`,
-      changeFrequency: "daily" as const,
-      priority: 0.7,
-    })),
-    ...offers.map((o) => ({
-      url: `${base}/oferta/${o.id}`,
-      lastModified: o.updatedAt,
-      changeFrequency: "daily" as const,
-      priority: 0.6,
-    })),
+    { url: `${base}/cupons`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/alertas`, changeFrequency: "monthly", priority: 0.4 },
   ];
+
+  const categoryRoutes = CATEGORIES.map((c) => ({
+    url: `${base}/categoria/${c.slug}`,
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
+  const termRoutes = SEO_TERMS.map((t) => ({
+    url: `${base}/ofertas/${t.slug}`,
+    changeFrequency: "daily" as const,
+    priority: 0.7,
+  }));
+
+  const couponRoutes = PUBLIC_MARKETPLACES.map((m) => ({
+    url: `${base}/cupons/${m.slug}`,
+    changeFrequency: "daily" as const,
+    priority: 0.6,
+  }));
+
+  const offerRoutes = offers.map((o) => ({
+    url: `${base}/oferta/${o.id}`,
+    lastModified: o.updatedAt,
+    changeFrequency: "daily" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...categoryRoutes, ...termRoutes, ...couponRoutes, ...offerRoutes];
 }

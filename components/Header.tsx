@@ -22,6 +22,9 @@ export function Header() {
           />
         </form>
 
+        <Link href="/cupons" className="hidden text-sm font-medium text-gray-300 hover:text-white sm:block">
+          🎟️ Cupons
+        </Link>
         <Link href="/alertas" className="btn-ghost text-sm">
           🔔 Alertas
         </Link>

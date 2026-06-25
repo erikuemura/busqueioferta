@@ -5,6 +5,8 @@ import { sendWhatsappMessage } from "@/lib/social/whatsapp";
 import { publishToInstagram } from "@/lib/social/instagram";
 import { publishToTikTok } from "@/lib/social/tiktok";
 import { publishToTelegram } from "@/lib/social/telegram";
+import { publishToFacebook } from "@/lib/social/facebook";
+import { publishToPinterest } from "@/lib/social/pinterest";
 
 interface JobData {
   socialPostId: string;
@@ -24,6 +26,9 @@ export function createPublishWorker(connection: ConnectionOptions) {
       if (!post) throw new Error("SocialPost não encontrado");
       const caption = post.caption ?? "";
       const imageUrl = post.imageUrl?.startsWith("/") ? `${SITE_URL}${post.imageUrl}` : post.imageUrl ?? undefined;
+      // link de afiliado (Pinterest usa como destino do Pin)
+      const offer = await prisma.offer.findUnique({ where: { id: post.offerId }, select: { affiliateUrl: true } });
+      const link = offer?.affiliateUrl;
 
       try {
         let externalId: string | undefined;
@@ -43,6 +48,14 @@ export function createPublishWorker(connection: ConnectionOptions) {
           }
           case "TELEGRAM": {
             externalId = String((await publishToTelegram({ caption, imageUrl })).id);
+            break;
+          }
+          case "FACEBOOK": {
+            if (imageUrl) externalId = (await publishToFacebook({ imageUrl, caption })).id;
+            break;
+          }
+          case "PINTEREST": {
+            if (imageUrl) externalId = (await publishToPinterest({ imageUrl, caption, link })).id;
             break;
           }
         }
