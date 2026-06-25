@@ -162,7 +162,13 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
               ))}
             </div>
 
-            <ShareButtons offerId={offer.id} whatsappUrl={waUrl} affiliateUrl={offer.affiliateUrl} />
+            <ShareButtons
+              offerId={offer.id}
+              whatsappUrl={waUrl}
+              affiliateUrl={offer.affiliateUrl}
+              shareUrl={absoluteUrl(`/oferta/${offer.id}`)}
+              title={`${offer.title} por ${formatPrice(offer.currentPrice)} (-${discount}%)`}
+            />
 
             {offer.description && (
               <div className="card p-4 text-sm leading-relaxed text-gray-300">

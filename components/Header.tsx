@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { SearchAutocomplete } from "./SearchAutocomplete";
+import { LogoMark } from "./Logo";
 
 export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-lg">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-5">
         <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-extrabold tracking-tight">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-brand to-accent text-white shadow-md shadow-brand/30">
-            🔥
-          </span>
+          <LogoMark className="h-9 w-9 drop-shadow-sm" />
           <span className="hidden sm:inline">
             busque<span className="text-brand">ioferta</span>
           </span>

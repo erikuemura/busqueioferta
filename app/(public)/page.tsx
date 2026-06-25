@@ -9,6 +9,7 @@ import { OfferGrid } from "@/components/OfferGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { CouponCard } from "@/components/CouponCard";
 import { HotDealsCarousel } from "@/components/HotDealsCarousel";
+import { HowItWorks } from "@/components/HowItWorks";
 import { formatPrice } from "@/lib/utils";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -168,6 +169,8 @@ export default async function HomePage({
             </div>
           </section>
         )}
+
+        {!q && <HowItWorks />}
       </main>
       <Footer />
     </>
