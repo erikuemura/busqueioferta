@@ -8,7 +8,7 @@ import { CategoryNav } from "@/components/CategoryNav";
 import { OfferGrid } from "@/components/OfferGrid";
 import { OfferCard } from "@/components/OfferCard";
 import { CouponCard } from "@/components/CouponCard";
-import { Hero } from "@/components/Hero";
+import { HotDealsCarousel } from "@/components/HotDealsCarousel";
 import { formatPrice } from "@/lib/utils";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -40,8 +40,9 @@ export default async function HomePage({
   let total = 0;
   let mostClicked: Offer[] = [];
   let coupons: Coupon[] = [];
+  let hotDeals: Offer[] = [];
   try {
-    [featured, offers, total, mostClicked, coupons] = await Promise.all([
+    [featured, offers, total, mostClicked, coupons, hotDeals] = await Promise.all([
       q
         ? Promise.resolve<Offer[]>([])
         : prisma.offer.findMany({
@@ -66,6 +67,13 @@ export default async function HomePage({
             orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
             take: 6,
           }),
+      q
+        ? Promise.resolve<Offer[]>([])
+        : prisma.offer.findMany({
+            where: { status: "ACTIVE", discountPercent: { gte: 25 } },
+            orderBy: [{ featured: "desc" }, { discountPercent: "desc" }],
+            take: 6,
+          }),
     ]);
   } catch (err) {
     console.error("[home] falha ao carregar ofertas:", (err as Error).message);
@@ -77,7 +85,21 @@ export default async function HomePage({
     <>
       <Header />
       <main className="container-page py-6">
-        {!q && <Hero offerCount={total} couponCount={coupons.length} />}
+        {!q && hotDeals.length > 0 && <HotDealsCarousel offers={hotDeals} />}
+
+        {!q && (
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-3 text-sm text-gray-300">
+            <span className="inline-flex items-center gap-1.5"><strong className="text-white">{total}+</strong> ofertas ativas</span>
+            <span className="text-gray-600">·</span>
+            <span className="inline-flex items-center gap-1.5"><strong className="text-white">{coupons.length}+</strong> cupons válidos</span>
+            <span className="text-gray-600">·</span>
+            <span className="inline-flex items-center gap-1.5">🏪 7 marketplaces</span>
+            <span className="text-gray-600">·</span>
+            <span className="inline-flex items-center gap-1.5">✅ link verificado</span>
+            <span className="text-gray-600">·</span>
+            <span className="inline-flex items-center gap-1.5">⏱ atualizado a cada 2h</span>
+          </div>
+        )}
 
         {!q && featured.length > 0 && (
           <section className="mb-10">
