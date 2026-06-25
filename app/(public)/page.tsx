@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import type { Prisma } from "@prisma/client";
+import type { Offer, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -27,22 +27,31 @@ export default async function HomePage({
       : {}),
   };
 
-  const [featured, offers, total] = await Promise.all([
-    q
-      ? Promise.resolve([])
-      : prisma.offer.findMany({
-          where: { status: "ACTIVE", featured: true },
-          orderBy: { score: "desc" },
-          take: 5,
-        }),
-    prisma.offer.findMany({
-      where,
-      orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
-      take: PAGE_SIZE,
-      skip: (page - 1) * PAGE_SIZE,
-    }),
-    prisma.offer.count({ where }),
-  ]);
+  // Resiliente: se o banco estiver indisponível (ex.: DATABASE_URL ainda não
+  // configurada no deploy), mostra o layout com estado vazio em vez de quebrar.
+  let featured: Offer[] = [];
+  let offers: Offer[] = [];
+  let total = 0;
+  try {
+    [featured, offers, total] = await Promise.all([
+      q
+        ? Promise.resolve<Offer[]>([])
+        : prisma.offer.findMany({
+            where: { status: "ACTIVE", featured: true },
+            orderBy: { score: "desc" },
+            take: 5,
+          }),
+      prisma.offer.findMany({
+        where,
+        orderBy: [{ featured: "desc" }, { createdAt: "desc" }],
+        take: PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,
+      }),
+      prisma.offer.count({ where }),
+    ]);
+  } catch (err) {
+    console.error("[home] falha ao carregar ofertas:", (err as Error).message);
+  }
 
   const hasMore = page * PAGE_SIZE < total;
 

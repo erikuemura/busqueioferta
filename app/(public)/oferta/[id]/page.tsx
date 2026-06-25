@@ -16,7 +16,12 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 export const revalidate = 900;
 
 async function getOffer(id: string) {
-  return prisma.offer.findUnique({ where: { id }, include: { tags: true } });
+  try {
+    return await prisma.offer.findUnique({ where: { id }, include: { tags: true } });
+  } catch (err) {
+    console.error("[oferta] falha ao carregar:", (err as Error).message);
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -45,11 +50,13 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
   const message = renderTemplate(template, offerToVars(offer));
   const waUrl = whatsappShareUrl(message);
 
-  const related = await prisma.offer.findMany({
-    where: { status: "ACTIVE", category: offer.category, id: { not: offer.id } },
-    orderBy: { score: "desc" },
-    take: 4,
-  });
+  const related = await prisma.offer
+    .findMany({
+      where: { status: "ACTIVE", category: offer.category, id: { not: offer.id } },
+      orderBy: { score: "desc" },
+      take: 4,
+    })
+    .catch(() => []);
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   const productLd = {

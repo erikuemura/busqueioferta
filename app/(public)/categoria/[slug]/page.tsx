@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import type { Prisma } from "@prisma/client";
+import type { Offer, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getCategoryBySlug } from "@/lib/categories";
 import { Header } from "@/components/Header";
@@ -40,15 +40,21 @@ export default async function CategoryPage({
   const page = Math.max(1, Number(searchParams.page) || 1);
   const where = { status: "ACTIVE" as const, category: cat.value };
 
-  const [offers, total] = await Promise.all([
-    prisma.offer.findMany({
-      where,
-      orderBy: SORTS[sortKey].orderBy,
-      take: PAGE_SIZE,
-      skip: (page - 1) * PAGE_SIZE,
-    }),
-    prisma.offer.count({ where }),
-  ]);
+  let offers: Offer[] = [];
+  let total = 0;
+  try {
+    [offers, total] = await Promise.all([
+      prisma.offer.findMany({
+        where,
+        orderBy: SORTS[sortKey].orderBy,
+        take: PAGE_SIZE,
+        skip: (page - 1) * PAGE_SIZE,
+      }),
+      prisma.offer.count({ where }),
+    ]);
+  } catch (err) {
+    console.error("[categoria] falha ao carregar ofertas:", (err as Error).message);
+  }
 
   const hasMore = page * PAGE_SIZE < total;
 

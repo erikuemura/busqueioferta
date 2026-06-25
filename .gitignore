@@ -35,3 +35,4 @@ yarn-error.log*
 
 # uploads / imagens geradas localmente
 /public/generated
+.vercel
