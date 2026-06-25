@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 import { CATEGORIES, PUBLIC_MARKETPLACES } from "@/lib/categories";
 import { SEO_TERMS } from "@/lib/terms";
+import { GUIDES } from "@/lib/guides";
 
 export const revalidate = 3600;
 
@@ -25,8 +26,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: base, changeFrequency: "hourly", priority: 1 },
     { url: `${base}/cupons`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/guias`, changeFrequency: "weekly", priority: 0.6 },
+    { url: `${base}/sobre`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${base}/alertas`, changeFrequency: "monthly", priority: 0.4 },
   ];
+
+  const guideRoutes = GUIDES.map((g) => ({
+    url: `${base}/guias/${g.slug}`,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
 
   const categoryRoutes = CATEGORIES.map((c) => ({
     url: `${base}/categoria/${c.slug}`,
@@ -53,5 +62,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...termRoutes, ...couponRoutes, ...offerRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...termRoutes, ...couponRoutes, ...guideRoutes, ...offerRoutes];
 }
