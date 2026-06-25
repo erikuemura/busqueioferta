@@ -150,7 +150,8 @@ export function OfferForm({ offer }: { offer?: Offer }) {
         {offer && (
           <div>
             <p className="mb-2 text-xs font-semibold uppercase text-gray-500">Arte para Instagram/WhatsApp</p>
-            {/* gerada pelo Sharp via API */}
+            {/* gerada pelo Sharp via API (PNG dinâmico — não otimizar com next/image) */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/api/social/${offer.id}/image?format=square`}
               alt="arte social"

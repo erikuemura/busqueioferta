@@ -61,6 +61,7 @@ export default async function SocialPage({ searchParams }: { searchParams: { pla
                 <span className={`rounded px-2 py-0.5 font-semibold ${STATUS_COLORS[p.status]}`}>{p.status}</span>
               </div>
 
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={p.imageUrl ?? `/api/social/${p.offer.id}/image?format=square`}
                 alt="arte"
