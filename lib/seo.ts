@@ -17,7 +17,9 @@ export function buildMetadata(opts: {
   noindex?: boolean;
 }): Metadata {
   const canonical = absoluteUrl(opts.path);
-  const images = opts.image ? [{ url: opts.image }] : undefined;
+  // Default: imagem OG de marca gerada dinamicamente com o título da página.
+  const ogImage = opts.image ?? absoluteUrl(`/api/og?title=${encodeURIComponent(opts.title)}`);
+  const images = [{ url: ogImage }];
   return {
     title: opts.title,
     description: opts.description,
@@ -36,7 +38,7 @@ export function buildMetadata(opts: {
       card: "summary_large_image",
       title: opts.title,
       description: opts.description,
-      images: opts.image ? [opts.image] : undefined,
+      images: [ogImage],
     },
   };
 }
