@@ -8,6 +8,7 @@ import { getSetting } from "@/lib/settings";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SignOutButton } from "@/components/SignOutButton";
+import { PushToggle } from "@/components/PushToggle";
 import { AccountForm } from "./AccountForm";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,8 @@ export default async function AccountPage() {
           />
 
           <aside className="space-y-4">
+            <PushToggle />
+
             <div className="card p-5">
               <h2 className="font-bold">Grupos de WhatsApp 💬</h2>
               {groups.length === 0 ? (

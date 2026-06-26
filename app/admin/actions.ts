@@ -110,6 +110,14 @@ export async function broadcastWhatsappAction(offerId: string) {
   return result;
 }
 
+export async function pushOfferAction(offerId: string) {
+  await requireSession();
+  const { pushOffer } = await import("@/lib/push");
+  const result = await pushOffer(offerId);
+  revalidatePath("/admin/ofertas");
+  return result;
+}
+
 export async function retrySocialPostAction(id: string) {
   await requireSession();
   const post = await prisma.socialPost.update({

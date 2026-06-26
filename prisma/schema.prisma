@@ -196,7 +196,21 @@ model User {
   lastDigestAt  DateTime?
   createdAt DateTime @default(now())
 
-  directMessages DirectMessage[]
+  directMessages    DirectMessage[]
+  pushSubscriptions PushSubscription[]
+}
+
+// Inscrição de notificação push (Web Push). Pode ou não estar ligada a um cliente.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 // Registro de envio direto (WhatsApp/e-mail) a um cliente — dedup + status.

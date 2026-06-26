@@ -25,7 +25,7 @@ const nextConfig = {
   },
   experimental: {
     // sharp e bullmq são pesados/server-only; mantemos fora do bundle do edge
-    serverComponentsExternalPackages: ["sharp", "bullmq", "ioredis", "bcryptjs"],
+    serverComponentsExternalPackages: ["sharp", "bullmq", "ioredis", "bcryptjs", "web-push"],
   },
   async headers() {
     return [

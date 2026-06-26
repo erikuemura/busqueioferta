@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Offer } from "@prisma/client";
 import { formatPrice, formatDateTime } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
-import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction } from "../actions";
+import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction, pushOfferAction } from "../actions";
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: "bg-emerald-500/15 text-emerald-400",
@@ -28,6 +28,20 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
         r.total === 0
           ? "Nenhum cliente com esse interesse + WhatsApp ainda."
           : `${r.dryRun ? "Enfileirado (API WhatsApp não configurada): " : ""}${r.sent} enviado(s), ${r.skipped} já recebidos, ${r.failed} falha(s) de ${r.total} cliente(s).`,
+      );
+    });
+  }
+
+  function push(id: string) {
+    setBroadcastMsg("Enviando push…");
+    startTransition(async () => {
+      const r = await pushOfferAction(id);
+      setBroadcastMsg(
+        !r.configured
+          ? "Push não configurado (faltam as chaves VAPID)."
+          : r.total === 0
+            ? "Nenhum inscrito com esse interesse ainda."
+            : `🔔 Push: ${r.sent} enviado(s), ${r.failed} falha(s) de ${r.total} inscrito(s).`,
       );
     });
   }
@@ -134,6 +148,14 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
                       title="Enviar esta oferta no WhatsApp dos clientes do nicho"
                     >
                       📲 Clientes
+                    </button>
+                    <button
+                      disabled={pending}
+                      onClick={() => push(o.id)}
+                      className="font-medium text-sky-400 hover:text-sky-300"
+                      title="Enviar notificação push aos inscritos do nicho"
+                    >
+                      🔔 Push
                     </button>
                     <button
                       disabled={pending}
