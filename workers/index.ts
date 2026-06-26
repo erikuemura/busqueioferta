@@ -10,6 +10,7 @@ import { createScheduleSocialWorker } from "./scheduleSocial";
 import { createGenerateImageWorker } from "./generateSocialImage";
 import { createPublishWorker } from "./publishSocial";
 import { createAlertWorker } from "./sendAlertEmails";
+import { createWhatsappBroadcastWorker } from "./whatsappBroadcast";
 
 /** "07:00,12:00" → ["0 7 * * *", "0 12 * * *"] */
 function publishTimesToCron(raw: string): string[] {
@@ -37,6 +38,7 @@ async function main() {
     createGenerateImageWorker(connection),
     createPublishWorker(connection),
     createAlertWorker(connection),
+    createWhatsappBroadcastWorker(connection),
   ];
 
   workers.forEach((w) =>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Offer } from "@prisma/client";
 import { formatPrice, formatDateTime } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
-import { archiveOfferAction, bulkArchiveAction, publishToSocialAction } from "../actions";
+import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction } from "../actions";
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: "bg-emerald-500/15 text-emerald-400",
@@ -18,6 +18,19 @@ const STATUS_COLORS: Record<string, string> = {
 export function OffersTable({ offers }: { offers: Offer[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
+  const [broadcastMsg, setBroadcastMsg] = useState("");
+
+  function broadcast(id: string) {
+    setBroadcastMsg("Enviando…");
+    startTransition(async () => {
+      const r = await broadcastWhatsappAction(id);
+      setBroadcastMsg(
+        r.total === 0
+          ? "Nenhum cliente com esse interesse + WhatsApp ainda."
+          : `${r.dryRun ? "Enfileirado (API WhatsApp não configurada): " : ""}${r.sent} enviado(s), ${r.skipped} já recebidos, ${r.failed} falha(s) de ${r.total} cliente(s).`,
+      );
+    });
+  }
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -37,6 +50,12 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
 
   return (
     <div className="space-y-3">
+      {broadcastMsg && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-300">
+          📲 {broadcastMsg}
+          <button onClick={() => setBroadcastMsg("")} className="ml-auto text-emerald-400/70 hover:text-emerald-300">✕</button>
+        </div>
+      )}
       {selected.size > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-brand/40 bg-brand/10 px-4 py-2 text-sm">
           <span>{selected.size} selecionada(s)</span>
@@ -107,6 +126,14 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
                       className="text-gray-300 hover:text-brand"
                     >
                       Publicar
+                    </button>
+                    <button
+                      disabled={pending}
+                      onClick={() => broadcast(o.id)}
+                      className="font-medium text-emerald-400 hover:text-emerald-300"
+                      title="Enviar esta oferta no WhatsApp dos clientes do nicho"
+                    >
+                      📲 Clientes
                     </button>
                     <button
                       disabled={pending}

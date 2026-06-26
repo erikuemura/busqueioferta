@@ -19,6 +19,7 @@ export const QUEUE_NAMES = {
   generateSocialImage: "generate-social-image",
   publishSocial: "publish-social",
   sendAlertEmails: "send-alert-emails",
+  whatsappBroadcast: "whatsapp-broadcast",
 } as const;
 
 function makeQueue(name: string): Queue | null {
@@ -32,6 +33,7 @@ export const queues = {
   generateSocialImage: makeQueue(QUEUE_NAMES.generateSocialImage),
   publishSocial: makeQueue(QUEUE_NAMES.publishSocial),
   sendAlertEmails: makeQueue(QUEUE_NAMES.sendAlertEmails),
+  whatsappBroadcast: makeQueue(QUEUE_NAMES.whatsappBroadcast),
 };
 
 /** Enfileira a geração de imagem social para uma oferta (no-op sem Redis). */
@@ -44,5 +46,11 @@ export async function enqueueGenerateSocialImage(offerId: string, platform: stri
 export async function enqueuePublishSocial(socialPostId: string) {
   if (!queues.publishSocial) return false;
   await queues.publishSocial.add("publish", { socialPostId });
+  return true;
+}
+
+export async function enqueueWhatsappBroadcast(offerId: string) {
+  if (!queues.whatsappBroadcast) return false;
+  await queues.whatsappBroadcast.add("broadcast", { offerId });
   return true;
 }

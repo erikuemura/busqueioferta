@@ -26,6 +26,8 @@ export default async function DashboardPage() {
     clicks24h,
     clicks7d,
     clicks30d,
+    customerCount,
+    whatsappSent,
   ] = await Promise.all([
       prisma.offer.count({ where: { status: "ACTIVE" } }),
       prisma.offer.count({ where: { status: "DRAFT" } }),
@@ -45,6 +47,8 @@ export default async function DashboardPage() {
       prisma.clickEvent.count({ where: { type: "CLICK", createdAt: { gte: ago24h } } }),
       prisma.clickEvent.count({ where: { type: "CLICK", createdAt: { gte: ago7d } } }),
       prisma.clickEvent.count({ where: { type: "CLICK", createdAt: { gte: ago30d } } }),
+      prisma.user.count({ where: { role: "CUSTOMER" } }),
+      prisma.directMessage.count({ where: { channel: "WHATSAPP", status: "SENT" } }),
     ]);
 
   const totalClicks = agg._sum.clicks ?? 0;
@@ -57,8 +61,8 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Ofertas ativas" value={activeCount} />
-        <Stat label="Rascunhos (DRAFT)" value={draftCount} />
-        <Stat label="Cliques (total)" value={totalClicks} />
+        <Stat label="Clientes cadastrados" value={customerCount} />
+        <Stat label="WhatsApp enviados" value={whatsappSent} />
         <Stat label="Compartilhamentos" value={totalShares} />
       </div>
 

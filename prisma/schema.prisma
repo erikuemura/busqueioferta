@@ -195,6 +195,34 @@ model User {
   wantsEmail    Boolean   @default(true)
   lastDigestAt  DateTime?
   createdAt DateTime @default(now())
+
+  directMessages DirectMessage[]
+}
+
+// Registro de envio direto (WhatsApp/e-mail) a um cliente — dedup + status.
+model DirectMessage {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId   String?
+  channel   MessageChannel @default(WHATSAPP)
+  status    DispatchStatus @default(SENT)
+  error     String?
+  createdAt DateTime       @default(now())
+
+  @@unique([userId, offerId, channel])
+  @@index([createdAt])
+}
+
+enum MessageChannel {
+  WHATSAPP
+  EMAIL
+}
+
+enum DispatchStatus {
+  SENT
+  FAILED
+  PENDING
 }
 
 enum Role {
