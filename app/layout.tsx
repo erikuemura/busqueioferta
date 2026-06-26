@@ -4,6 +4,7 @@ import "./globals.css";
 import { JsonLd } from "@/components/JsonLd";
 import { Analytics } from "@/components/Analytics";
 import { CookieConsent } from "@/components/CookieConsent";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { organizationLd, webSiteLd } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="font-sans antialiased">
         {children}
         <CookieConsent />
+        <PWAInstallPrompt />
         <JsonLd data={[organizationLd(), webSiteLd()]} />
         <Analytics />
       </body>
