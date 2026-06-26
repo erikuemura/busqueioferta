@@ -37,6 +37,7 @@ model Offer {
   socialPosts SocialPost[]
   tags        Tag[]
   events      ClickEvent[]
+  watchers    Watchlist[]
 
   @@unique([marketplace, externalId])
   @@index([status, category])
@@ -198,6 +199,20 @@ model User {
 
   directMessages    DirectMessage[]
   pushSubscriptions PushSubscription[]
+  watchlist         Watchlist[]
+}
+
+// Ofertas favoritadas pelo cliente (watchlist) — base do alerta de queda de preço.
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, offerId])
+  @@index([offerId])
 }
 
 // Inscrição de notificação push (Web Push). Pode ou não estar ligada a um cliente.

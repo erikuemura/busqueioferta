@@ -13,6 +13,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { OfferCard } from "@/components/OfferCard";
 import { ShareButtons } from "@/components/ShareButtons";
+import { FavoriteButton } from "@/components/FavoriteButton";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
 export const revalidate = 900;
@@ -167,13 +168,16 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
               </p>
             )}
 
-            <ShareButtons
-              offerId={offer.id}
-              whatsappUrl={waUrl}
-              affiliateUrl={offer.affiliateUrl}
-              shareUrl={absoluteUrl(`/oferta/${offer.id}`)}
-              title={`${offer.title} por ${formatPrice(offer.currentPrice)} (-${discount}%)`}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <FavoriteButton offerId={offer.id} />
+              <ShareButtons
+                offerId={offer.id}
+                whatsappUrl={waUrl}
+                affiliateUrl={offer.affiliateUrl}
+                shareUrl={absoluteUrl(`/oferta/${offer.id}`)}
+                title={`${offer.title} por ${formatPrice(offer.currentPrice)} (-${discount}%)`}
+              />
+            </div>
 
             {offer.description && (
               <div className="card p-4 text-sm leading-relaxed text-gray-300">

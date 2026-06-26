@@ -94,6 +94,36 @@ export async function pushOffer(offerId: string): Promise<PushResult> {
   return { total: subs.length, sent, failed, configured: true };
 }
 
+/** Notifica quem favoritou a oferta quando o preço cai. */
+export async function pushPriceDrop(offerId: string, oldPrice: number): Promise<PushResult> {
+  ensureConfigured();
+  if (!isPushConfigured()) return { total: 0, sent: 0, failed: 0, configured: false };
+  const offer = await prisma.offer.findUnique({ where: { id: offerId } });
+  if (!offer) return { total: 0, sent: 0, failed: 0, configured: true };
+
+  const subs = await prisma.pushSubscription.findMany({
+    where: { user: { watchlist: { some: { offerId } } } },
+    select: { id: true, endpoint: true, p256dh: true, auth: true },
+  });
+
+  const payload: PushPayload = {
+    title: `📉 Baixou de preço! ${getMarketplaceMeta(offer.marketplace).label}`,
+    body: `${offer.title}: de ${formatPrice(oldPrice)} por ${formatPrice(offer.currentPrice)}`,
+    url: `/oferta/${offer.id}`,
+    image: offer.imageUrl,
+    tag: `drop-${offer.id}`,
+    icon: absoluteUrl("/icon-192.png"),
+  };
+
+  let sent = 0;
+  let failed = 0;
+  for (const sub of subs) {
+    (await sendTo(sub, payload)) ? sent++ : failed++;
+  }
+  logger.info("push.price_drop", { offerId, oldPrice, newPrice: offer.currentPrice, total: subs.length, sent, failed });
+  return { total: subs.length, sent, failed, configured: true };
+}
+
 function buildOfferPayload(offer: Offer): PushPayload {
   return {
     title: `🔥 ${Math.round(offer.discountPercent)}% OFF — ${getMarketplaceMeta(offer.marketplace).label}`,

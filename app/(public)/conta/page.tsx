@@ -9,6 +9,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SignOutButton } from "@/components/SignOutButton";
 import { PushToggle } from "@/components/PushToggle";
+import { OfferCard } from "@/components/OfferCard";
 import { AccountForm } from "./AccountForm";
 
 export const dynamic = "force-dynamic";
@@ -20,9 +21,16 @@ export default async function AccountPage() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { name: true, email: true, phone: true, interests: true, wantsWhatsapp: true, wantsEmail: true },
+    select: { id: true, name: true, email: true, phone: true, interests: true, wantsWhatsapp: true, wantsEmail: true },
   });
   if (!user) redirect("/entrar");
+
+  const favorites = await prisma.watchlist.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 12,
+    include: { offer: true },
+  });
 
   const [groups, telegramChannel] = await Promise.all([
     getWhatsappGroupsFor(user.interests),
@@ -109,6 +117,22 @@ export default async function AccountPage() {
             </div>
           </aside>
         </div>
+
+        <section className="mt-12">
+          <h2 className="section-title mb-4">♥ Meus favoritos</h2>
+          {favorites.length === 0 ? (
+            <div className="card p-8 text-center text-gray-400">
+              Você ainda não favoritou nenhuma oferta. Toque em <strong>♡ Favoritar</strong> em qualquer
+              oferta para acompanhar e ser avisado quando o preço cair.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {favorites.map((f) => (
+                <OfferCard key={f.id} offer={f.offer} />
+              ))}
+            </div>
+          )}
+        </section>
       </main>
       <Footer />
     </>

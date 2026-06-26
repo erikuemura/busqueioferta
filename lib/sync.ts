@@ -3,6 +3,7 @@ import { prisma } from "./prisma";
 import { computeScore } from "./scoring";
 import { calcDiscountPercent } from "./utils";
 import { getSetting } from "./settings";
+import { logger } from "./logger";
 import type { NormalizedOffer } from "./marketplaces/types";
 
 export interface SyncResult {
@@ -49,7 +50,7 @@ export async function upsertOffers(offers: NormalizedOffer[]): Promise<SyncResul
           externalId: offer.externalId,
         },
       },
-      select: { id: true },
+      select: { id: true, currentPrice: true },
     });
 
     const data = {
@@ -76,6 +77,15 @@ export async function upsertOffers(offers: NormalizedOffer[]): Promise<SyncResul
         data: { ...data, notFoundCount: 0 },
       });
       result.updated++;
+      // alerta de queda de preço para quem favoritou
+      if (offer.currentPrice < existing.currentPrice) {
+        try {
+          const { pushPriceDrop } = await import("./push");
+          await pushPriceDrop(existing.id, existing.currentPrice);
+        } catch (err) {
+          logger.error("sync.price_drop_notify_failed", err, { offerId: existing.id });
+        }
+      }
     } else {
       await prisma.offer.create({
         data: {
