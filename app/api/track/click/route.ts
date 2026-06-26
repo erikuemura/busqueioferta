@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { rateLimit, clientKey } from "@/lib/rateLimit";
 import { logger } from "@/lib/logger";
+import { appendSubId } from "@/lib/affiliateLinks";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +60,10 @@ export async function GET(req: NextRequest) {
   // ----- Oferta -----
   if (!offerId) return NextResponse.json({ error: "offerId ou couponId obrigatório" }, { status: 400 });
 
-  const offer = await prisma.offer.findUnique({ where: { id: offerId }, select: { affiliateUrl: true } });
+  const offer = await prisma.offer.findUnique({
+    where: { id: offerId },
+    select: { affiliateUrl: true, marketplace: true },
+  });
   if (!offer) return NextResponse.json({ error: "Oferta não encontrada" }, { status: 404 });
 
   if (type === "SHARE" || type === "VIEW") {
@@ -73,13 +77,16 @@ export async function GET(req: NextRequest) {
     return new NextResponse(null, { status: 204 });
   }
 
+  // grava o evento primeiro para usar o id como SubID de reconciliação
+  let subId = "";
   try {
-    await prisma.$transaction([
-      prisma.offer.update({ where: { id: offerId }, data: { clicks: { increment: 1 } } }),
-      prisma.clickEvent.create({ data: { offerId, type: "CLICK", ...meta } }),
-    ]);
+    const event = await prisma.clickEvent.create({ data: { offerId, type: "CLICK", ...meta } });
+    subId = event.id;
+    await prisma.offer.update({ where: { id: offerId }, data: { clicks: { increment: 1 } } });
   } catch (err) {
     logger.error("track.click.persist_failed", err, { offerId });
   }
-  return NextResponse.redirect(offer.affiliateUrl, { status: 302 });
+
+  const target = appendSubId(offer.marketplace, offer.affiliateUrl, subId);
+  return NextResponse.redirect(target, { status: 302 });
 }

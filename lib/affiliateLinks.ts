@@ -45,3 +45,31 @@ export function buildAffiliateUrl(marketplace: Marketplace, rawUrl: string): str
     return rawUrl;
   }
 }
+
+/**
+ * Anexa um SubID (ex.: id do ClickEvent) ao link de afiliado usando o parâmetro
+ * que cada rede reconhece em seus relatórios — permite reconciliar a conversão
+ * com a origem do tráfego (categoria, UTM, canal).
+ */
+export function appendSubId(marketplace: Marketplace, rawUrl: string, subId: string): string {
+  if (!subId) return rawUrl;
+  try {
+    const url = new URL(rawUrl);
+    const param =
+      marketplace === "AMAZON"
+        ? "ascsubtag"
+        : marketplace === "MERCADO_LIVRE"
+          ? "matt_word"
+          : marketplace === "MAGAZINE_LUIZA" ||
+              marketplace === "AMERICANAS" ||
+              marketplace === "KABUM" ||
+              marketplace === "CASAS_BAHIA" ||
+              marketplace === "PONTO"
+            ? "clickref" // Awin
+            : "subid";
+    if (!url.searchParams.has(param)) url.searchParams.set(param, subId);
+    return url.toString();
+  } catch {
+    return rawUrl;
+  }
+}

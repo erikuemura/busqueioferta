@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getWhatsappGroupsFor } from "@/lib/whatsappGroups";
+import { getSetting } from "@/lib/settings";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SignOutButton } from "@/components/SignOutButton";
@@ -22,7 +23,10 @@ export default async function AccountPage() {
   });
   if (!user) redirect("/entrar");
 
-  const groups = await getWhatsappGroupsFor(user.interests);
+  const [groups, telegramChannel] = await Promise.all([
+    getWhatsappGroupsFor(user.interests),
+    getSetting("telegramChannel"),
+  ]);
   const firstName = (user.name || user.email).split(" ")[0];
 
   return (
@@ -77,6 +81,22 @@ export default async function AccountPage() {
                 </>
               )}
             </div>
+
+            {telegramChannel && (
+              <div className="card p-5">
+                <h2 className="font-bold">Canal no Telegram ✈️</h2>
+                <p className="mb-3 mt-1 text-sm text-gray-400">Acompanhe todas as ofertas em tempo real no nosso canal.</p>
+                <a
+                  href={telegramChannel}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+                  style={{ background: "#229ED9" }}
+                >
+                  Entrar no canal
+                </a>
+              </div>
+            )}
 
             <div className="card p-5 text-sm text-gray-400">
               <h2 className="mb-1 font-bold text-white">Como funciona</h2>
