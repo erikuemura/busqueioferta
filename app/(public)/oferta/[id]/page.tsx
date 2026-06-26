@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, formatDateTime } from "@/lib/utils";
 import { getCategoryMeta, getMarketplaceMeta } from "@/lib/categories";
 import { offerToVars, renderTemplate, whatsappShareUrl } from "@/lib/social/whatsapp";
 import { absoluteUrl, breadcrumbLd } from "@/lib/seo";
@@ -161,6 +161,11 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
                 </div>
               ))}
             </div>
+            {offer.notFoundCount === 0 && (
+              <p className="text-xs text-emerald-400">
+                ✓ Disponibilidade verificada — última checagem em {formatDateTime(offer.updatedAt)}
+              </p>
+            )}
 
             <ShareButtons
               offerId={offer.id}

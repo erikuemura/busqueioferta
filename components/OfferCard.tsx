@@ -53,9 +53,14 @@ export function OfferCard({ offer }: { offer: Offer }) {
           >
             {market.label}
           </span>
-          {offer.rating ? (
-            <span className="text-[11px] font-semibold text-amber-400">★ {offer.rating.toFixed(1)}</span>
-          ) : null}
+          <span className="flex items-center gap-1.5">
+            {offer.notFoundCount === 0 && (
+              <span className="text-[10px] font-semibold text-emerald-400" title="Disponibilidade confirmada">✓ Verificada</span>
+            )}
+            {offer.rating ? (
+              <span className="text-[11px] font-semibold text-amber-400">★ {offer.rating.toFixed(1)}</span>
+            ) : null}
+          </span>
         </div>
 
         <Link

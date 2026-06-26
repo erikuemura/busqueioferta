@@ -58,7 +58,7 @@ export function SearchAutocomplete() {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (q.trim()) {
-      router.push(`/?q=${encodeURIComponent(q.trim())}`);
+      router.push(`/busca?q=${encodeURIComponent(q.trim())}`);
       setOpen(false);
     }
   }
