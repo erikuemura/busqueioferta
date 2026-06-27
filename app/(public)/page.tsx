@@ -11,6 +11,7 @@ import { CouponCard } from "@/components/CouponCard";
 import { HotDealsCarousel } from "@/components/HotDealsCarousel";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NewsletterBand } from "@/components/NewsletterBand";
+import { CategoryShowcase } from "@/components/CategoryShowcase";
 import { formatPrice } from "@/lib/utils";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -43,8 +44,10 @@ export default async function HomePage({
   let mostClicked: Offer[] = [];
   let coupons: Coupon[] = [];
   let hotDeals: Offer[] = [];
+  let expiringSoon: Offer[] = [];
+  const in24h = new Date(Date.now() + 24 * 3600_000);
   try {
-    [featured, offers, total, mostClicked, coupons, hotDeals] = await Promise.all([
+    [featured, offers, total, mostClicked, coupons, hotDeals, expiringSoon] = await Promise.all([
       q
         ? Promise.resolve<Offer[]>([])
         : prisma.offer.findMany({
@@ -76,6 +79,13 @@ export default async function HomePage({
             orderBy: [{ featured: "desc" }, { discountPercent: "desc" }],
             take: 6,
           }),
+      q
+        ? Promise.resolve<Offer[]>([])
+        : prisma.offer.findMany({
+            where: { status: "ACTIVE", expiresAt: { gte: new Date(), lte: in24h } },
+            orderBy: { expiresAt: "asc" },
+            take: 4,
+          }),
     ]);
   } catch (err) {
     console.error("[home] falha ao carregar ofertas:", (err as Error).message);
@@ -102,6 +112,22 @@ export default async function HomePage({
             <span className="inline-flex items-center gap-1.5">⏱ atualizado a cada 2h</span>
           </div>
         )}
+
+        {!q && expiringSoon.length > 0 && (
+          <section className="mb-10">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="section-title text-accent">⚡ Últimas horas</h2>
+              <span className="hidden text-sm text-gray-500 sm:block">Ofertas que estão acabando</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {expiringSoon.map((o) => (
+                <OfferCard key={o.id} offer={o} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {!q && <CategoryShowcase />}
 
         {!q && featured.length > 0 && (
           <section className="mb-10">

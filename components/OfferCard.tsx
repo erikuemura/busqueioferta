@@ -4,6 +4,7 @@ import type { Offer } from "@prisma/client";
 import { formatPrice } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
 import { CountdownTimer } from "./CountdownTimer";
+import { CardFavorite } from "./CardFavorite";
 
 export function OfferCard({ offer }: { offer: Offer }) {
   const market = getMarketplaceMeta(offer.marketplace);
@@ -14,7 +15,10 @@ export function OfferCard({ offer }: { offer: Offer }) {
   const bestPrice = discount >= 50 || offer.featured;
 
   return (
-    <article className="card group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-lg hover:shadow-black/30">
+    <article className="card group relative flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:border-brand/60 hover:shadow-lg hover:shadow-black/30">
+      <div className="absolute right-2 top-2 z-10">
+        <CardFavorite offerId={offer.id} />
+      </div>
       <Link href={`/oferta/${offer.id}`} className="relative block aspect-square overflow-hidden bg-white">
         <Image
           src={offer.imageUrl}
@@ -26,7 +30,7 @@ export function OfferCard({ offer }: { offer: Offer }) {
         <span className="absolute left-2 top-2 rounded-lg bg-accent px-2 py-1 text-sm font-extrabold text-white shadow">
           -{discount}%
         </span>
-        <div className="absolute right-2 top-2 flex flex-col items-end gap-1">
+        <div className="absolute left-2 top-11 flex flex-col items-start gap-1">
           {hot && (
             <span className="rounded-md bg-orange-600 px-1.5 py-0.5 text-[10px] font-bold text-white shadow">
               🔥 OFERTA QUENTE

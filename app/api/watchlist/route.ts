@@ -11,12 +11,20 @@ async function currentUserId(): Promise<string | null> {
   return user?.id ?? null;
 }
 
-/** GET ?offerId= → estado de favorito da oferta (e se está logado). */
+/**
+ * GET ?offerId= → estado de favorito de uma oferta (e se está logado).
+ * GET sem offerId → lista de ids favoritados do usuário (para os cards).
+ */
 export async function GET(req: NextRequest) {
   const offerId = req.nextUrl.searchParams.get("offerId");
   const userId = await currentUserId();
-  if (!userId) return NextResponse.json({ loggedIn: false, favorited: false });
-  if (!offerId) return NextResponse.json({ loggedIn: true, favorited: false });
+  if (!userId) return NextResponse.json({ loggedIn: false, favorited: false, ids: [] });
+
+  if (!offerId) {
+    const rows = await prisma.watchlist.findMany({ where: { userId }, select: { offerId: true } });
+    return NextResponse.json({ loggedIn: true, ids: rows.map((r) => r.offerId) });
+  }
+
   const fav = await prisma.watchlist.findUnique({
     where: { userId_offerId: { userId, offerId } },
     select: { id: true },
