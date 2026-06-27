@@ -17,6 +17,7 @@ import { FavoriteButton } from "@/components/FavoriteButton";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { PriceChart } from "@/components/PriceChart";
 import { getPriceStats } from "@/lib/priceHistory";
+import { TemperatureVote } from "@/components/TemperatureVote";
 
 export const revalidate = 900;
 
@@ -159,6 +160,8 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
                 🛒 Pegar oferta na {market.label}
               </a>
             </div>
+
+            <TemperatureVote offerId={offer.id} initial={offer.temperature} />
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {TRUST.map((t) => (

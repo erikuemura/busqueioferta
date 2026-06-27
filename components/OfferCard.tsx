@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
 import { CountdownTimer } from "./CountdownTimer";
 import { CardFavorite } from "./CardFavorite";
+import { tempClass, tempLabel } from "@/lib/temperature";
 
 export function OfferCard({ offer }: { offer: Offer }) {
   const market = getMarketplaceMeta(offer.marketplace);
@@ -58,8 +59,10 @@ export function OfferCard({ offer }: { offer: Offer }) {
             {market.label}
           </span>
           <span className="flex items-center gap-1.5">
-            {offer.notFoundCount === 0 && (
-              <span className="text-[10px] font-semibold text-emerald-400" title="Disponibilidade confirmada">✓ Verificada</span>
+            {offer.temperature !== 0 && (
+              <span className={`text-[11px] font-bold ${tempClass(offer.temperature)}`} title="Termômetro da oferta">
+                🔥 {tempLabel(offer.temperature)}
+              </span>
             )}
             {offer.rating ? (
               <span className="text-[11px] font-semibold text-amber-400">★ {offer.rating.toFixed(1)}</span>

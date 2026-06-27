@@ -28,6 +28,7 @@ model Offer {
   externalId      String? // ID do produto no marketplace
   externalSku     String?
   notFoundCount   Int         @default(0) // verificações consecutivas sem encontrar
+  temperature     Int         @default(0) // termômetro: votos quente(+1)/frio(-1)
   clicks          Int         @default(0)
   shares          Int         @default(0)
   publishedAt     DateTime?
@@ -39,6 +40,7 @@ model Offer {
   events      ClickEvent[]
   watchers    Watchlist[]
   priceHistory PriceHistory[]
+  votes       OfferVote[]
 
   @@unique([marketplace, externalId])
   @@index([status, category])
@@ -201,6 +203,19 @@ model User {
   directMessages    DirectMessage[]
   pushSubscriptions PushSubscription[]
   watchlist         Watchlist[]
+}
+
+// Voto no "termômetro" da oferta (quente/frio), com dedup por voterKey (cookie).
+model OfferVote {
+  id        String   @id @default(cuid())
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  voterKey  String
+  value     Int // 1 = quente, -1 = frio
+  createdAt DateTime @default(now())
+
+  @@unique([offerId, voterKey])
+  @@index([offerId])
 }
 
 // Histórico de preço de uma oferta — base do "menor preço em X dias".
