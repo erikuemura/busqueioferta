@@ -15,6 +15,8 @@ import { OfferCard } from "@/components/OfferCard";
 import { ShareButtons } from "@/components/ShareButtons";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { PriceChart } from "@/components/PriceChart";
+import { getPriceStats } from "@/lib/priceHistory";
 
 export const revalidate = 900;
 
@@ -67,13 +69,16 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
   const message = renderTemplate(template, offerToVars(offer));
   const waUrl = whatsappShareUrl(message);
 
-  const related = await prisma.offer
-    .findMany({
-      where: { status: "ACTIVE", category: offer.category, id: { not: offer.id } },
-      orderBy: { score: "desc" },
-      take: 4,
-    })
-    .catch(() => []);
+  const [related, priceStats] = await Promise.all([
+    prisma.offer
+      .findMany({
+        where: { status: "ACTIVE", category: offer.category, id: { not: offer.id } },
+        orderBy: { score: "desc" },
+        take: 4,
+      })
+      .catch(() => []),
+    getPriceStats(offer.id, offer.currentPrice),
+  ]);
 
   const productLd = {
     "@context": "https://schema.org",
@@ -178,6 +183,8 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
                 title={`${offer.title} por ${formatPrice(offer.currentPrice)} (-${discount}%)`}
               />
             </div>
+
+            {priceStats && <PriceChart stats={priceStats} current={offer.currentPrice} />}
 
             {offer.description && (
               <div className="card p-4 text-sm leading-relaxed text-gray-300">

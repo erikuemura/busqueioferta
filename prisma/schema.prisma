@@ -38,6 +38,7 @@ model Offer {
   tags        Tag[]
   events      ClickEvent[]
   watchers    Watchlist[]
+  priceHistory PriceHistory[]
 
   @@unique([marketplace, externalId])
   @@index([status, category])
@@ -200,6 +201,17 @@ model User {
   directMessages    DirectMessage[]
   pushSubscriptions PushSubscription[]
   watchlist         Watchlist[]
+}
+
+// Histórico de preço de uma oferta — base do "menor preço em X dias".
+model PriceHistory {
+  id         String   @id @default(cuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  price      Float
+  recordedAt DateTime @default(now())
+
+  @@index([offerId, recordedAt])
 }
 
 // Ofertas favoritadas pelo cliente (watchlist) — base do alerta de queda de preço.

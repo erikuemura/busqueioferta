@@ -77,6 +77,11 @@ export async function upsertOffers(offers: NormalizedOffer[]): Promise<SyncResul
         data: { ...data, notFoundCount: 0 },
       });
       result.updated++;
+      // registra histórico de preço quando muda
+      if (offer.currentPrice !== existing.currentPrice) {
+        const { recordPrice } = await import("./priceHistory");
+        await recordPrice(existing.id, offer.currentPrice);
+      }
       // alerta de queda de preço para quem favoritou
       if (offer.currentPrice < existing.currentPrice) {
         try {
@@ -87,13 +92,15 @@ export async function upsertOffers(offers: NormalizedOffer[]): Promise<SyncResul
         }
       }
     } else {
-      await prisma.offer.create({
+      const created = await prisma.offer.create({
         data: {
           ...data,
           status,
           externalId: offer.externalId,
         },
       });
+      const { recordPrice } = await import("./priceHistory");
+      await recordPrice(created.id, offer.currentPrice);
       result.created++;
     }
   }
