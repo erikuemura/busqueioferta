@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "@/components/JsonLd";
 import { Analytics } from "@/components/Analytics";
@@ -10,6 +10,7 @@ import { FavoritesProvider } from "@/components/FavoritesProvider";
 import { organizationLd, webSiteLd } from "@/lib/seo";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const sora = Sora({ subsets: ["latin"], variable: "--font-display", display: "swap", weight: ["600", "700", "800"] });
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 const siteName = process.env.NEXT_PUBLIC_SITE_NAME ?? "busqueioferta";
@@ -47,7 +48,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`dark ${inter.variable}`}>
+    <html lang="pt-BR" className={`dark ${inter.variable} ${sora.variable}`}>
       <body className="font-sans antialiased">
         <FavoritesProvider>{children}</FavoritesProvider>
         <ScrollToTop />

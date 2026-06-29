@@ -34,7 +34,7 @@ export function GET(req: NextRequest) {
               height: "60px",
               borderRadius: "16px",
               marginRight: "18px",
-              background: "linear-gradient(135deg, #FF7A33, #E11D48)",
+              background: "linear-gradient(135deg, #FF8A3D, #FF5A1F 55%, #E11D48)",
             }}
           />
           <div style={{ display: "flex", fontSize: "36px", fontWeight: 800 }}>

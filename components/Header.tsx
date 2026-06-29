@@ -7,7 +7,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/80 backdrop-blur-lg">
       <div className="container-page flex h-16 items-center gap-3 sm:gap-5">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-extrabold tracking-tight">
+        <Link href="/" className="flex shrink-0 items-center gap-2 font-display text-lg font-extrabold tracking-tight">
           <LogoMark className="h-9 w-9 drop-shadow-sm" />
           <span className="hidden sm:inline">
             busque<span className="text-brand">ioferta</span>

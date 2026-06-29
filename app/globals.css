@@ -52,7 +52,15 @@ body {
 
   /* Cabeçalho de seção com barra de destaque */
   .section-title {
-    @apply flex items-center gap-2.5 text-lg font-bold tracking-tight sm:text-xl;
+    @apply flex items-center gap-2.5 font-display text-lg font-extrabold tracking-tight sm:text-xl;
+  }
+  /* Títulos de página usam a fonte de marca */
+  h1,
+  h2 {
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+  }
+  .font-brand {
+    font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
   }
   .section-title::before {
     content: "";
