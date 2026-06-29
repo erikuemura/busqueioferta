@@ -2,10 +2,18 @@ import Link from "next/link";
 import { CATEGORIES, PUBLIC_MARKETPLACES } from "@/lib/categories";
 import { SEO_TERMS } from "@/lib/terms";
 import { GUIDES } from "@/lib/guides";
+import { Logo } from "./Logo";
 
 export function Footer() {
   return (
     <footer className="mt-16 border-t border-[var(--border)] py-10">
+      <div className="container-page mb-8 max-w-md">
+        <Logo />
+        <p className="mt-3 text-sm text-gray-400">
+          Curadoria inteligente das melhores ofertas, cupons e descontos dos principais marketplaces do
+          Brasil. <span className="text-gradient-brand font-semibold">Economize sem garimpo.</span>
+        </p>
+      </div>
       <div className="container-page grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="mb-3 text-sm font-bold text-gray-200">Categorias</p>

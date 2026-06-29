@@ -20,8 +20,10 @@ export function NewsletterBand() {
   }
 
   return (
-    <section className="mt-14 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-br from-[#1b1410] to-[var(--card)] p-8 sm:p-10">
-      <div className="mx-auto max-w-2xl text-center">
+    <section className="relative mt-14 overflow-hidden rounded-3xl border border-[var(--border)] bg-gradient-to-br from-[#1b1410] to-[var(--card)] p-8 sm:p-10">
+      <div className="bg-grid pointer-events-none absolute inset-0 opacity-60" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand/20 blur-3xl" />
+      <div className="relative mx-auto max-w-2xl text-center">
         <h2 className="text-2xl font-extrabold sm:text-3xl">📩 Receba as melhores ofertas no e-mail</h2>
         <p className="mt-2 text-gray-300">
           Um resumo com as promoções mais quentes do dia. Sem spam, cancele quando quiser.

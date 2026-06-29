@@ -77,6 +77,22 @@ body {
 }
 
 @layer utilities {
+  /* Texto com o gradiente da marca (laranja → vermelho) */
+  .text-gradient-brand {
+    background: linear-gradient(90deg, #ff8a3d, #ff5a1f 45%, #e11d48);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Fundo com o gradiente da marca */
+  .bg-brand-gradient {
+    background: linear-gradient(135deg, #ff8a3d, #ff5a1f 55%, #e11d48);
+  }
+  /* Textura sutil de marca (grade de pontos) */
+  .bg-grid {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }

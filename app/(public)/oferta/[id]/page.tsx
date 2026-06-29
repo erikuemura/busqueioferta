@@ -18,6 +18,7 @@ import { CountdownTimer } from "@/components/CountdownTimer";
 import { PriceChart } from "@/components/PriceChart";
 import { getPriceStats } from "@/lib/priceHistory";
 import { TemperatureVote } from "@/components/TemperatureVote";
+import { VerifiedSeal } from "@/components/VerifiedSeal";
 
 export const revalidate = 900;
 
@@ -160,6 +161,8 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
                 🛒 Pegar oferta na {market.label}
               </a>
             </div>
+
+            <VerifiedSeal />
 
             <TemperatureVote offerId={offer.id} initial={offer.temperature} />
 
