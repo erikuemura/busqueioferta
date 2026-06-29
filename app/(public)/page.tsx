@@ -12,6 +12,7 @@ import { HotDealsCarousel } from "@/components/HotDealsCarousel";
 import { HowItWorks } from "@/components/HowItWorks";
 import { NewsletterBand } from "@/components/NewsletterBand";
 import { CategoryShowcase } from "@/components/CategoryShowcase";
+import { HotRanking } from "@/components/HotRanking";
 import { formatPrice } from "@/lib/utils";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -45,9 +46,10 @@ export default async function HomePage({
   let coupons: Coupon[] = [];
   let hotDeals: Offer[] = [];
   let expiringSoon: Offer[] = [];
+  let hottest: Offer[] = [];
   const in24h = new Date(Date.now() + 24 * 3600_000);
   try {
-    [featured, offers, total, mostClicked, coupons, hotDeals, expiringSoon] = await Promise.all([
+    [featured, offers, total, mostClicked, coupons, hotDeals, expiringSoon, hottest] = await Promise.all([
       q
         ? Promise.resolve<Offer[]>([])
         : prisma.offer.findMany({
@@ -85,6 +87,13 @@ export default async function HomePage({
             where: { status: "ACTIVE", expiresAt: { gte: new Date(), lte: in24h } },
             orderBy: { expiresAt: "asc" },
             take: 4,
+          }),
+      q
+        ? Promise.resolve<Offer[]>([])
+        : prisma.offer.findMany({
+            where: { status: "ACTIVE", temperature: { gt: 0 } },
+            orderBy: { temperature: "desc" },
+            take: 6,
           }),
     ]);
   } catch (err) {
@@ -128,6 +137,8 @@ export default async function HomePage({
         )}
 
         {!q && <CategoryShowcase />}
+
+        {!q && hottest.length > 0 && <HotRanking offers={hottest} />}
 
         {!q && featured.length > 0 && (
           <section className="mb-10">
