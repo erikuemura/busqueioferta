@@ -31,6 +31,8 @@ export function mlAuthUrl(redirectUri: string): string {
     response_type: "code",
     client_id: process.env.ML_CLIENT_ID ?? "",
     redirect_uri: redirectUri,
+    // offline_access é essencial para receber o refresh token
+    scope: "offline_access read write",
   });
   return `${AUTH_BASE}?${params}`;
 }
