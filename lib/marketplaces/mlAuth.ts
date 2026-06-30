@@ -1,46 +1,89 @@
+import { prisma } from "@/lib/prisma";
+
 /**
  * Autenticação do Mercado Livre.
  *
- * Desde 2024 a busca pública (`/sites/MLB/search`) exige token — sem ele a API
- * responde 403. Aqui resolvemos o token de duas formas, nesta ordem:
- *   1. ML_ACCESS_TOKEN fixo no ambiente (útil p/ testes rápidos)
- *   2. Fluxo OAuth client_credentials com ML_CLIENT_ID + ML_CLIENT_SECRET
- *      (gera um app token e renova sozinho quando expira)
+ * A busca (`/sites/MLB/search`) exige TOKEN DE USUÁRIO — o token de aplicação
+ * (client_credentials) é recusado com 403. Por isso usamos o fluxo OAuth
+ * authorization_code: o dono da conta autoriza uma vez, guardamos o refresh
+ * token no banco (Settings) e renovamos o access token automaticamente.
  */
-let cached: { token: string; expiresAt: number } | null = null;
-
 const TOKEN_URL = "https://api.mercadolibre.com/oauth/token";
+const AUTH_BASE = "https://auth.mercadolivre.com.br/authorization";
+const REFRESH_KEY = "mlRefreshToken";
+
+let cached: { token: string; expiresAt: number } | null = null;
 
 export function mlHasCredentials(): boolean {
   return Boolean(process.env.ML_ACCESS_TOKEN || (process.env.ML_CLIENT_ID && process.env.ML_CLIENT_SECRET));
 }
 
+async function readSetting(key: string): Promise<string | null> {
+  const row = await prisma.settings.findUnique({ where: { key } }).catch(() => null);
+  return row?.value ?? null;
+}
+async function writeSetting(key: string, value: string): Promise<void> {
+  await prisma.settings.upsert({ where: { key }, update: { value }, create: { key, value } }).catch(() => {});
+}
+
+export function mlAuthUrl(redirectUri: string): string {
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.ML_CLIENT_ID ?? "",
+    redirect_uri: redirectUri,
+  });
+  return `${AUTH_BASE}?${params}`;
+}
+
+export async function mlIsAuthorized(): Promise<boolean> {
+  if (process.env.ML_ACCESS_TOKEN) return true;
+  return Boolean(await readSetting(REFRESH_KEY));
+}
+
+/** Troca o code do callback por tokens e guarda o refresh token. */
+export async function mlExchangeCode(code: string, redirectUri: string): Promise<boolean> {
+  const res = await fetch(TOKEN_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
+    body: new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: process.env.ML_CLIENT_ID ?? "",
+      client_secret: process.env.ML_CLIENT_SECRET ?? "",
+      code,
+      redirect_uri: redirectUri,
+    }),
+    cache: "no-store",
+  });
+  if (!res.ok) return false;
+  const data = (await res.json()) as { access_token: string; refresh_token: string; expires_in: number };
+  if (!data.refresh_token) return false;
+  await writeSetting(REFRESH_KEY, data.refresh_token);
+  cached = { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
+  return true;
+}
+
 export async function getMlToken(): Promise<string | null> {
   if (process.env.ML_ACCESS_TOKEN) return process.env.ML_ACCESS_TOKEN;
-
-  const clientId = process.env.ML_CLIENT_ID;
-  const clientSecret = process.env.ML_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return null;
-
-  // reusa o token enquanto faltar > 60s para expirar
   if (cached && cached.expiresAt - Date.now() > 60_000) return cached.token;
+
+  const refresh = await readSetting(REFRESH_KEY);
+  if (!refresh || !process.env.ML_CLIENT_ID || !process.env.ML_CLIENT_SECRET) return null;
 
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
     body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
+      grant_type: "refresh_token",
+      client_id: process.env.ML_CLIENT_ID,
+      client_secret: process.env.ML_CLIENT_SECRET,
+      refresh_token: refresh,
     }),
     cache: "no-store",
   });
-
-  if (!res.ok) {
-    throw new Error(`Falha ao obter token do Mercado Livre: ${res.status} ${await res.text()}`);
-  }
-
-  const data = (await res.json()) as { access_token: string; expires_in: number };
+  if (!res.ok) return null;
+  const data = (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
   cached = { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
+  // o ML rotaciona o refresh token a cada uso
+  if (data.refresh_token) await writeSetting(REFRESH_KEY, data.refresh_token);
   return cached.token;
 }

@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { getAllSettings } from "@/lib/settings";
 import { getConfiguredAdapters } from "@/lib/marketplaces";
+import { mlIsAuthorized, mlHasCredentials } from "@/lib/marketplaces/mlAuth";
 import { requireSession } from "../guard";
 import { saveSettingsAction } from "../actions";
 
@@ -8,6 +10,8 @@ export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   await requireSession();
   const s = await getAllSettings();
+  const mlReady = mlHasCredentials();
+  const mlConnected = await mlIsAuthorized();
 
   const integrations = [
     {
@@ -48,6 +52,26 @@ export default async function SettingsPage() {
             </span>
           ))}
         </div>
+      </section>
+
+      <section className="card p-5">
+        <h2 className="mb-1 font-semibold">🛒 Conexão Mercado Livre</h2>
+        <p className="mb-4 text-sm text-gray-400">
+          A busca do ML exige login do dono da conta (OAuth). Conecte uma vez para puxar ofertas reais
+          com seu link de afiliado.
+        </p>
+        {!mlReady ? (
+          <p className="text-sm text-amber-400">Faltam as chaves do app (ML_CLIENT_ID / ML_CLIENT_SECRET).</p>
+        ) : mlConnected ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-lg bg-emerald-500/15 px-3 py-1.5 text-sm font-semibold text-emerald-400">
+              ● Conectado
+            </span>
+            <Link href="/api/ml/auth" className="btn-ghost text-sm">Reconectar</Link>
+          </div>
+        ) : (
+          <Link href="/api/ml/auth" className="btn-brand text-sm">Conectar Mercado Livre</Link>
+        )}
       </section>
 
       <form action={saveSettingsAction} className="space-y-8">
