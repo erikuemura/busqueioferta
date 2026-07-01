@@ -1,3 +1,4 @@
+import { randomBytes, createHash } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -26,14 +27,23 @@ async function writeSetting(key: string, value: string): Promise<void> {
   await prisma.settings.upsert({ where: { key }, update: { value }, create: { key, value } }).catch(() => {});
 }
 
-export function mlAuthUrl(redirectUri: string): string {
+/** Gera o par PKCE (code_verifier / code_challenge, método S256). */
+export function generatePkcePair(): { verifier: string; challenge: string } {
+  const verifier = randomBytes(32).toString("base64url"); // 43 chars, URL-safe
+  const challenge = createHash("sha256").update(verifier).digest("base64url");
+  return { verifier, challenge };
+}
+
+export function mlAuthUrl(redirectUri: string, codeChallenge: string): string {
   // A API do Mercado Livre (marketplace) não usa parâmetro "scope" — diferente
-  // do Mercado Pago. O refresh_token é emitido automaticamente para apps do
-  // tipo "servidor" (confidenciais). Só response_type/client_id/redirect_uri.
+  // do Mercado Pago. O refresh_token é emitido conforme o fluxo habilitado no
+  // app (Configuração e scopes → Fluxos OAuth). PKCE é obrigatório para este app.
   const params = new URLSearchParams({
     response_type: "code",
     client_id: process.env.ML_CLIENT_ID ?? "",
     redirect_uri: redirectUri,
+    code_challenge: codeChallenge,
+    code_challenge_method: "S256",
   });
   return `${AUTH_BASE}?${params}`;
 }
@@ -49,7 +59,11 @@ export interface MlExchangeResult {
 }
 
 /** Troca o code do callback por tokens e guarda o refresh token. */
-export async function mlExchangeCode(code: string, redirectUri: string): Promise<MlExchangeResult> {
+export async function mlExchangeCode(
+  code: string,
+  redirectUri: string,
+  codeVerifier: string,
+): Promise<MlExchangeResult> {
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
@@ -59,6 +73,7 @@ export async function mlExchangeCode(code: string, redirectUri: string): Promise
       client_secret: process.env.ML_CLIENT_SECRET ?? "",
       code,
       redirect_uri: redirectUri,
+      code_verifier: codeVerifier,
     }),
     cache: "no-store",
   });

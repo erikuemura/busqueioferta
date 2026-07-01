@@ -5,6 +5,8 @@ import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
+const PKCE_COOKIE = "ml_pkce_verifier";
+
 function html(title: string, body: string, ok: boolean, detail?: string) {
   return new Response(
     `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${title}</title>
@@ -20,17 +22,36 @@ function html(title: string, body: string, ok: boolean, detail?: string) {
   );
 }
 
-/** Redirect URI do app ML: troca o code por tokens e guarda o refresh token. */
+/** Redirect URI do app ML: troca o code (+ PKCE verifier) por tokens. */
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   const error = req.nextUrl.searchParams.get("error");
   if (error || !code) {
     return html("Autorização não concluída", "Você cancelou ou houve um erro. Tente novamente.", false, error ?? undefined);
   }
+
+  const verifier = req.cookies.get(PKCE_COOKIE)?.value;
+  if (!verifier) {
+    return html(
+      "Sessão de autorização expirada",
+      "Não achamos o verificador PKCE (o link pode ter expirado ou sido aberto em outra aba). Comece de novo.",
+      false,
+      undefined,
+    );
+  }
+
   const redirectUri = absoluteUrl("/api/ml/callback");
-  const result = await mlExchangeCode(code, redirectUri);
+  const result = await mlExchangeCode(code, redirectUri, verifier);
   if (!result.ok) logger.error("ml.exchange_failed", new Error(result.error), { redirectUri });
-  return result.ok
-    ? html("Mercado Livre conectado!", "Pronto — já podemos buscar ofertas reais com seu link de afiliado.", true)
-    : html("Falha ao conectar", "Não foi possível trocar o código. Veja o detalhe técnico abaixo.", false, result.error);
+
+  const res = html(
+    result.ok ? "Mercado Livre conectado!" : "Falha ao conectar",
+    result.ok
+      ? "Pronto — já podemos buscar ofertas reais com seu link de afiliado."
+      : "Não foi possível trocar o código. Veja o detalhe técnico abaixo.",
+    result.ok,
+    result.ok ? undefined : result.error,
+  );
+  res.headers.append("Set-Cookie", `${PKCE_COOKIE}=; Path=/api/ml; Max-Age=0`);
+  return res;
 }
