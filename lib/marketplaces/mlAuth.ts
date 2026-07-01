@@ -65,14 +65,19 @@ export async function mlExchangeCode(code: string, redirectUri: string): Promise
   const bodyText = await res.text();
   if (!res.ok) return { ok: false, error: `HTTP ${res.status}: ${bodyText.slice(0, 300)}` };
 
-  let data: { access_token?: string; refresh_token?: string; expires_in?: number };
+  let data: { access_token?: string; refresh_token?: string; expires_in?: number; scope?: string; token_type?: string };
   try {
     data = JSON.parse(bodyText);
   } catch {
     return { ok: false, error: `Resposta inválida: ${bodyText.slice(0, 300)}` };
   }
   if (!data.refresh_token) {
-    return { ok: false, error: "ML não devolveu refresh_token (confira o escopo offline_access no app)." };
+    // Mostra a resposta real do ML (com o access_token mascarado) para diagnóstico.
+    const redacted = { ...data, access_token: data.access_token ? `${data.access_token.slice(0, 10)}...` : undefined };
+    return {
+      ok: false,
+      error: `ML não devolveu refresh_token. Resposta: ${JSON.stringify(redacted)}`,
+    };
   }
   await writeSetting(REFRESH_KEY, data.refresh_token);
   cached = { token: data.access_token!, expiresAt: Date.now() + (data.expires_in ?? 21600) * 1000 };
