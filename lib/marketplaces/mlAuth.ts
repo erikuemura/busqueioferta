@@ -27,12 +27,13 @@ async function writeSetting(key: string, value: string): Promise<void> {
 }
 
 export function mlAuthUrl(redirectUri: string): string {
+  // A API do Mercado Livre (marketplace) não usa parâmetro "scope" — diferente
+  // do Mercado Pago. O refresh_token é emitido automaticamente para apps do
+  // tipo "servidor" (confidenciais). Só response_type/client_id/redirect_uri.
   const params = new URLSearchParams({
     response_type: "code",
     client_id: process.env.ML_CLIENT_ID ?? "",
     redirect_uri: redirectUri,
-    // offline_access é essencial para receber o refresh token
-    scope: "offline_access read write",
   });
   return `${AUTH_BASE}?${params}`;
 }
