@@ -34,6 +34,8 @@ export const DEFAULT_SETTINGS = {
   whatsappGroups: "{}",
   // Canal do Telegram (link público t.me/...)
   telegramChannel: "",
+  // Token que autentica o bookmarklet de captura (gerado em /admin/ofertas/capturar)
+  captureToken: "",
 } as const;
 
 export type SettingKey = keyof typeof DEFAULT_SETTINGS;

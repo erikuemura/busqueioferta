@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Offer } from "@prisma/client";
 import { formatPrice, formatDateTime } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
-import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction, pushOfferAction } from "../actions";
+import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction, pushOfferAction, reviewExpiredOfferAction } from "../actions";
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: "bg-emerald-500/15 text-emerald-400",
@@ -114,7 +114,13 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
                   </Link>
                   <span className="text-xs text-gray-500">
                     {o.clicks} cliques · {o.shares} shares
+                    {o.capturedVia === "bookmarklet" && <span className="ml-1.5 text-sky-400">· 🔖 capturada</span>}
                   </span>
+                  {o.expiredReportsCount > 0 && (
+                    <span className="mt-0.5 block text-xs font-semibold text-amber-400">
+                      ⚠ {o.expiredReportsCount} report(s) de &quot;expirou&quot;
+                    </span>
+                  )}
                 </td>
                 <td className="p-3">
                   <span className="rounded px-1.5 py-0.5 text-xs font-bold text-black" style={{ backgroundColor: getMarketplaceMeta(o.marketplace).color }}>
@@ -164,6 +170,25 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
                     >
                       Arquivar
                     </button>
+                    {o.expiredReportsCount > 0 && (
+                      <>
+                        <button
+                          disabled={pending}
+                          onClick={() => startTransition(() => reviewExpiredOfferAction(o.id, true))}
+                          className="font-medium text-emerald-400 hover:text-emerald-300"
+                          title="Ainda está disponível — zera os reportes"
+                        >
+                          ✓ Mantém
+                        </button>
+                        <button
+                          disabled={pending}
+                          onClick={() => startTransition(() => reviewExpiredOfferAction(o.id, false))}
+                          className="font-medium text-red-400 hover:text-red-300"
+                        >
+                          Marcar expirada
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

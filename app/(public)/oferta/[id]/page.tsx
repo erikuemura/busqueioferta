@@ -19,6 +19,7 @@ import { PriceChart } from "@/components/PriceChart";
 import { getPriceStats } from "@/lib/priceHistory";
 import { TemperatureVote } from "@/components/TemperatureVote";
 import { VerifiedSeal } from "@/components/VerifiedSeal";
+import { ReportExpiredButton } from "@/components/ReportExpiredButton";
 
 export const revalidate = 900;
 
@@ -160,6 +161,9 @@ export default async function OfferPage({ params }: { params: { id: string } }) 
               >
                 🛒 Pegar oferta na {market.label}
               </a>
+              <div className="mt-3 text-center">
+                <ReportExpiredButton offerId={offer.id} />
+              </div>
             </div>
 
             <VerifiedSeal />

@@ -33,9 +33,14 @@ export default async function OffersPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">Ofertas</h1>
-        <Link href="/admin/ofertas/nova" className="btn-brand text-sm">
-          + Nova oferta manual
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/admin/ofertas/capturar" className="btn-ghost text-sm">
+            🔖 Bookmarklet
+          </Link>
+          <Link href="/admin/ofertas/nova" className="btn-brand text-sm">
+            + Nova oferta manual
+          </Link>
+        </div>
       </div>
 
       <form className="card flex flex-wrap items-end gap-3 p-4">

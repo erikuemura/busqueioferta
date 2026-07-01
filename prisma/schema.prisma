@@ -29,6 +29,8 @@ model Offer {
   externalSku     String?
   notFoundCount   Int         @default(0) // verificações consecutivas sem encontrar
   temperature     Int         @default(0) // termômetro: votos quente(+1)/frio(-1)
+  expiredReportsCount Int     @default(0) // reportes da comunidade de "oferta expirou"
+  capturedVia     String?     // "bookmarklet" quando veio da captura client-side
   clicks          Int         @default(0)
   shares          Int         @default(0)
   publishedAt     DateTime?
@@ -41,6 +43,7 @@ model Offer {
   watchers    Watchlist[]
   priceHistory PriceHistory[]
   votes       OfferVote[]
+  expiredReports ExpiredReport[]
 
   @@unique([marketplace, externalId])
   @@index([status, category])
@@ -215,6 +218,19 @@ model OfferVote {
   createdAt DateTime @default(now())
 
   @@unique([offerId, voterKey])
+  @@index([offerId])
+}
+
+// Reporte da comunidade de que uma oferta expirou/indisponível — dedup por cookie.
+// Substitui o monitoramento automático (bloqueado para o Mercado Livre).
+model ExpiredReport {
+  id         String   @id @default(cuid())
+  offerId    String
+  offer      Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  reporterKey String
+  createdAt  DateTime @default(now())
+
+  @@unique([offerId, reporterKey])
   @@index([offerId])
 }
 

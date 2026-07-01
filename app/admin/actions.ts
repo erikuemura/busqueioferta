@@ -128,6 +128,27 @@ export async function retrySocialPostAction(id: string) {
   revalidatePath("/admin/social");
 }
 
+export async function regenerateCaptureTokenAction() {
+  await requireSession();
+  const token = crypto.randomUUID().replace(/-/g, "");
+  await prisma.settings.upsert({
+    where: { key: "captureToken" },
+    update: { value: token },
+    create: { key: "captureToken", value: token },
+  });
+  revalidatePath("/admin/ofertas/capturar");
+  return token;
+}
+
+export async function reviewExpiredOfferAction(offerId: string, keep: boolean) {
+  await requireSession();
+  await prisma.offer.update({
+    where: { id: offerId },
+    data: keep ? { expiredReportsCount: 0 } : { status: "EXPIRED" },
+  });
+  revalidatePath("/admin/ofertas");
+}
+
 export async function saveSettingsAction(formData: FormData) {
   await requireSession();
   const entries = Array.from(formData.entries()).filter(([k]) => k !== "id");
