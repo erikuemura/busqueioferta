@@ -1,0 +1,18 @@
+name: Sync de ofertas (a cada 2h)
+
+# Cron gratuito via GitHub Actions — chama o endpoint de sync a cada 2 horas.
+# Requer o secret do repositório: CRON_SECRET (mesmo valor da env do Vercel).
+on:
+  schedule:
+    - cron: "0 */2 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Chamar /api/cron/sync
+        run: |
+          curl -sS -m 90 -X GET "https://busqueioferta.vercel.app/api/cron/sync" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP %{http_code}\n"
