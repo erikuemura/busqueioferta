@@ -14,17 +14,36 @@ export const dynamic = "force-dynamic";
 function buildBookmarkletCode(captureUrl: string, token: string): string {
   const js = `
 (function(){
-  function txt(sel){var e=document.querySelector(sel);return e?e.textContent.trim():null;}
+  function txt(sel, scope){var root=scope||document; var e=root.querySelector(sel);return e?e.textContent.trim():null;}
   function img(sel){var e=document.querySelector(sel);return e?(e.src||e.getAttribute('data-src')||null):null;}
-  function num(s){if(!s)return null;var n=parseFloat(s.replace(/[^0-9,.-]/g,'').replace(/\\.(?=.*\\.)/g,'').replace(',','.'));return isNaN(n)?null:n;}
+  function num(s){if(!s)return null;var n=parseFloat(String(s).replace(/[^0-9,.-]/g,'').replace(/\\.(?=.*\\.)/g,'').replace(',','.'));return isNaN(n)?null:n;}
 
   var title = txt('.ui-pdp-title') || txt('h1') || document.title;
-  var priceFraction = txt('.ui-pdp-price__second-line .andes-money-amount__fraction') || txt('.andes-money-amount__fraction');
-  var currentPrice = num(priceFraction);
-  var originalText = txt('.ui-pdp-price__original-value .andes-money-amount__fraction') || txt('s .andes-money-amount__fraction');
-  var originalPrice = num(originalText) || currentPrice;
+
+  // Escopo restrito à área de preço — evita pegar números soltos de outras
+  // partes da página (foi a causa do bug anterior: um seletor genérico pegou
+  // um valor de outro elemento e virou um "preço original" sem sentido).
+  var priceScope = document.querySelector('.ui-pdp-price') || document.querySelector('[class*="ui-pdp-price"]') || null;
+
+  var currentPrice = num(txt('.andes-money-amount__fraction', priceScope || document));
+
+  // 1) Tenta ler o badge de desconto ("-15%" / "15% OFF"), só DENTRO do
+  //    escopo de preço — é mais estável que tentar achar o "preço antes".
+  var originalPrice = null;
+  if (priceScope) {
+    var m = priceScope.textContent.match(/(\\d{1,2})\\s*%/);
+    if (m && currentPrice) {
+      var pct = parseInt(m[1], 10);
+      if (pct > 0 && pct < 100) originalPrice = Math.round((currentPrice / (1 - pct / 100)) * 100) / 100;
+    }
+    if (!originalPrice) {
+      originalPrice = num(txt('.ui-pdp-price__original-value .andes-money-amount__fraction', priceScope));
+    }
+  }
+
   // sanidade: "preço original" só faz sentido se for MAIOR que o atual —
-  // evita mandar um valor lido por engano de outro elemento da página
+  // se não achou nada confiável no escopo certo, assume sem desconto (não
+  // arrisca pegar um número de outra parte da página).
   if (!originalPrice || originalPrice <= currentPrice) originalPrice = currentPrice;
   var image = img('.ui-pdp-gallery__figure img') || img('.ui-pdp-image') || img('picture img');
 
