@@ -23,6 +23,9 @@ function buildBookmarkletCode(captureUrl: string, token: string): string {
   var currentPrice = num(priceFraction);
   var originalText = txt('.ui-pdp-price__original-value .andes-money-amount__fraction') || txt('s .andes-money-amount__fraction');
   var originalPrice = num(originalText) || currentPrice;
+  // sanidade: "preço original" só faz sentido se for MAIOR que o atual —
+  // evita mandar um valor lido por engano de outro elemento da página
+  if (!originalPrice || originalPrice <= currentPrice) originalPrice = currentPrice;
   var image = img('.ui-pdp-gallery__figure img') || img('.ui-pdp-image') || img('picture img');
 
   if(!title || !currentPrice){

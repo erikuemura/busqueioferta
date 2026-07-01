@@ -54,7 +54,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Dados inválidos", details: parsed.error.flatten() }, { status: 400, headers: cors });
   }
   const { token, url, title, imageUrl, currentPrice } = parsed.data;
-  const originalPrice = parsed.data.originalPrice ?? currentPrice;
+  // sanidade: preço "original" só vale se for maior que o atual (senão não é desconto)
+  const rawOriginal = parsed.data.originalPrice ?? currentPrice;
+  const originalPrice = rawOriginal > currentPrice ? rawOriginal : currentPrice;
 
   const validToken = await getSetting("captureToken");
   if (!validToken || token !== validToken) {

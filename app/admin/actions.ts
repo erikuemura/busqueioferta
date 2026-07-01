@@ -52,6 +52,14 @@ export async function saveOfferAction(formData: FormData) {
   redirect("/admin/ofertas");
 }
 
+/** Ativa a oferta (DRAFT/EXPIRED/OUT_OF_STOCK → ACTIVE) direto da tabela. */
+export async function activateOfferAction(id: string) {
+  await requireSession();
+  await prisma.offer.update({ where: { id }, data: { status: "ACTIVE", publishedAt: new Date() } });
+  revalidatePath("/admin/ofertas");
+  revalidatePath("/");
+}
+
 export async function archiveOfferAction(id: string) {
   await requireSession();
   await prisma.offer.update({ where: { id }, data: { status: "ARCHIVED" } });

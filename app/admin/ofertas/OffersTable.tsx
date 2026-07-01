@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { Offer } from "@prisma/client";
 import { formatPrice, formatDateTime } from "@/lib/utils";
 import { getMarketplaceMeta } from "@/lib/categories";
-import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction, pushOfferAction, reviewExpiredOfferAction } from "../actions";
+import { archiveOfferAction, bulkArchiveAction, publishToSocialAction, broadcastWhatsappAction, pushOfferAction, reviewExpiredOfferAction, activateOfferAction } from "../actions";
 
 const STATUS_COLORS: Record<string, string> = {
   ACTIVE: "bg-emerald-500/15 text-emerald-400",
@@ -140,12 +140,23 @@ export function OffersTable({ offers }: { offers: Offer[] }) {
                     <Link href={`/admin/ofertas/${o.id}/editar`} className="text-gray-300 hover:text-brand">
                       Editar
                     </Link>
+                    {o.status !== "ACTIVE" && (
+                      <button
+                        disabled={pending}
+                        onClick={() => startTransition(() => activateOfferAction(o.id))}
+                        className="font-semibold text-emerald-400 hover:text-emerald-300"
+                        title="Coloca a oferta no ar no site (status → ACTIVE)"
+                      >
+                        ✓ Ativar
+                      </button>
+                    )}
                     <button
                       disabled={pending}
                       onClick={() => startTransition(() => publishToSocialAction(o.id, ["WHATSAPP", "INSTAGRAM"]))}
                       className="text-gray-300 hover:text-brand"
+                      title="Divulgar nas redes sociais (WhatsApp/Instagram) — não muda o status no site"
                     >
-                      Publicar
+                      📢 Divulgar
                     </button>
                     <button
                       disabled={pending}
