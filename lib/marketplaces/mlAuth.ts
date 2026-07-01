@@ -42,8 +42,13 @@ export async function mlIsAuthorized(): Promise<boolean> {
   return Boolean(await readSetting(REFRESH_KEY));
 }
 
+export interface MlExchangeResult {
+  ok: boolean;
+  error?: string;
+}
+
 /** Troca o code do callback por tokens e guarda o refresh token. */
-export async function mlExchangeCode(code: string, redirectUri: string): Promise<boolean> {
+export async function mlExchangeCode(code: string, redirectUri: string): Promise<MlExchangeResult> {
   const res = await fetch(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
@@ -56,12 +61,21 @@ export async function mlExchangeCode(code: string, redirectUri: string): Promise
     }),
     cache: "no-store",
   });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { access_token: string; refresh_token: string; expires_in: number };
-  if (!data.refresh_token) return false;
+  const bodyText = await res.text();
+  if (!res.ok) return { ok: false, error: `HTTP ${res.status}: ${bodyText.slice(0, 300)}` };
+
+  let data: { access_token?: string; refresh_token?: string; expires_in?: number };
+  try {
+    data = JSON.parse(bodyText);
+  } catch {
+    return { ok: false, error: `Resposta inválida: ${bodyText.slice(0, 300)}` };
+  }
+  if (!data.refresh_token) {
+    return { ok: false, error: "ML não devolveu refresh_token (confira o escopo offline_access no app)." };
+  }
   await writeSetting(REFRESH_KEY, data.refresh_token);
-  cached = { token: data.access_token, expiresAt: Date.now() + data.expires_in * 1000 };
-  return true;
+  cached = { token: data.access_token!, expiresAt: Date.now() + (data.expires_in ?? 21600) * 1000 };
+  return { ok: true };
 }
 
 export async function getMlToken(): Promise<string | null> {
