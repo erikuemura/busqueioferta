@@ -19,7 +19,8 @@ export default async function OffersPage({
   const where: Prisma.OfferWhereInput = {
     ...(searchParams.marketplace ? { marketplace: searchParams.marketplace as never } : {}),
     ...(searchParams.category ? { category: searchParams.category as never } : {}),
-    ...(searchParams.status ? { status: searchParams.status as never } : {}),
+    // Por padrão oculta arquivadas; selecionando "ARCHIVED" no filtro elas aparecem.
+    ...(searchParams.status ? { status: searchParams.status as never } : { status: { not: "ARCHIVED" } }),
     ...(searchParams.q ? { title: { contains: searchParams.q, mode: "insensitive" } } : {}),
   };
 
